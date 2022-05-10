@@ -31,5 +31,9 @@ func InitConfig() error {
 	if err != nil {
 		return err
 	}
+	err = initRedis()
+	if err != nil {
+		return err
+	}
 	return nil
 }
