@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/go-redis/redis"
 	"sync"
@@ -55,40 +56,40 @@ func GetTokenKey(token string) string {
 
 // GetUserKey 把用户信息放在redis的key  key:user
 func GetUserKey(id int64) string {
-	return PREFIX_USER + SPLIT + string(id)
+	return PREFIX_USER + SPLIT + fmt.Sprint(id)
 }
 
 // GetVideoInfoKey 需要把单独一条视频信息记录时的key key:video
 func GetVideoInfoKey(id int64) string {
-	return PREFIX_VIDEO_INFO + SPLIT + string(id)
+	return PREFIX_VIDEO_INFO + SPLIT + fmt.Sprint(id)
 }
 
 // GetVideoFavoriteKey 需要记录一条视频被点赞时，记录的key key:set
 func GetVideoFavoriteKey(id int64) string {
-	return PREFIX_VIDEO_FAVORITE + SPLIT + string(id)
+	return PREFIX_VIDEO_FAVORITE + SPLIT + fmt.Sprint(id)
 }
 
 // GetVideoFavoriteNumKey 记录一条视频被点赞数量
 func GetVideoFavoriteNumKey(id int64) string {
-	return PREFIX_VIDEO_FAVORITE_NUM + SPLIT + string(id)
+	return PREFIX_VIDEO_FAVORITE_NUM + SPLIT + fmt.Sprint(id)
 }
 
 // GetVideoPostKey 需要记录一条视频被评论时，记录的key  key:list
 func GetVideoPostKey(id int64) string {
-	return PREFIX_VIDEO_POST + SPLIT + string(id)
+	return PREFIX_VIDEO_POST + SPLIT + fmt.Sprint(id)
 }
 
 // GetUserRelationKey 用户关注了那些人  key:set
 func GetUserRelationKey(id int64) string {
-	return PREFIX_USER_RELATION + SPLIT + string(id)
+	return PREFIX_USER_RELATION + SPLIT + fmt.Sprint(id)
 }
 
 // GetUserFollowerKey 用户被那些人关注,被关注者的key，一个用户用有的粉丝  key:set
 func GetUserFollowerKey(id int64) string {
-	return PREFIX_USER_FOLLWER + SPLIT + string(id)
+	return PREFIX_USER_FOLLWER + SPLIT + fmt.Sprint(id)
 }
 
 // GetUserVideoKey 存一个用户发送的视频的列表的  key:list
 func GetUserVideoKey(id int64) string {
-	return PREFIX_USER_VIDEO + SPLIT + string(id)
+	return PREFIX_USER_VIDEO + SPLIT + fmt.Sprint(id)
 }
