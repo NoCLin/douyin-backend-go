@@ -5,11 +5,12 @@ import (
 	"github.com/NoCLin/douyin-backend-go/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"log"
 )
 
 func initGorm() error {
 
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("testdb.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -23,7 +24,9 @@ func initGorm() error {
 	if err != nil {
 		panic("failed to migrate database")
 	}
+
 	G.DB = db
+	log.Println("The database was initialized successfully")
 	return nil
 
 }

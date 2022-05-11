@@ -3,15 +3,15 @@ server:
   mode: 'release'
 
 redis:
-  Addr: '127.0.0.1:6379'
-  password: '123456'
-  db: 0
+  Addr: '127.0.0.1:6379'   //自己redis的ip和端口
+  password: ''            //自己redis的密码 ，一般为空没有设置密码
+  db: 0                  //默认选择0号数据库
 
 mysql:
   user: root
-  password: '1111'
+  password: 'ran123456'
   path: '127.0.0.1:3306'
-  database: 'test'
+  database: 'testdb'
   config: 'charset=utf8&parseTime=True&loc=Local'
   driver: 'mysql'
   maxIdleConns: 10
