@@ -6,10 +6,11 @@ import (
 	"log"
 )
 
+//获得Redis客户端连接
 func initRedis() error {
 
 	redisDB := redis.NewClient(&redis.Options{})
-	_, err := redisDB.Ping().Result()
+	_, err := redisDB.Ping().Result() //ping通了才代表客户端连接成功
 
 	if err != nil {
 		panic("failed to migrate redis")

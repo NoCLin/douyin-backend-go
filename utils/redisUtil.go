@@ -8,15 +8,17 @@ import (
 )
 
 const (
-	SPLIT                 = ":"              //分隔符
-	PREFIX_TOKEN          = "token"          //登录token
-	PREFIX_USER           = "user"           //用户信息
-	PREFIX_VIDEO_INFO     = "video:info"     //视频信息
-	PREFIX_VIDEO_FAVORITE = "video:favorite" //视频点赞
-	PREFIX_VIDEO_POST     = "video:post"     //视频评论
-	PREFIX_USER_RELATION  = "user:relation"  //关注
-	PREFIX_USER_FOLLWER   = "user:follower"  //被关注（粉丝）
-	PREFIX_USER_VIDEO     = "user:video"     //用户发布的视频
+	SPLIT                     = ":"                        //分隔符
+	PREFIX_TOKEN              = "douyin:token"             //登录token
+	PREFIX_USER               = "douyin:user"              //用户信息
+	PREFIX_USER_VIDEO         = "douyin:user:video"        //用户发布的视频
+	PREFIX_VIDEO_INFO         = "douyin:video:info"        //视频信息
+	PREFIX_VIDEO_FAVORITE     = "douyin:video:favorite"    //视频点赞
+	PREFIX_VIDEO_FAVORITE_NUM = "douyin:video:favoriteNum" //视频被点赞数目
+	PREFIX_VIDEO_POST         = "douyin:video:post"        //视频评论
+	PREFIX_USER_RELATION      = "douyin:user:relation"     //关注
+	PREFIX_USER_FOLLWER       = "douyin:user:follower"     //被关注（粉丝）
+
 )
 
 var lock sync.Mutex
@@ -27,9 +29,9 @@ func GetRedisDB() (*redis.Client, error) {
 	if G.RedisDB != nil {
 		return G.RedisDB, nil
 	}
-	lock.Lock() //如果是在在项目中也使用GetRedisDB获得redis连接，则考虑并发的创建redis连接，得加锁
+	lock.Lock()
 	defer lock.Unlock()
-	if G.RedisDB == nil {
+	if G.RedisDB == nil { //避免并发的建立客户端连接，客户端连接可以只有一个，单例的
 		redisDB := redis.NewClient(&redis.Options{})
 		_, err := redisDB.Ping().Result()
 
@@ -44,6 +46,8 @@ func GetRedisDB() (*redis.Client, error) {
 
 }
 
+//主键生成
+
 // GetTokenKey 存放token的key  key:token
 func GetTokenKey(token string) string {
 	return PREFIX_TOKEN + SPLIT + token
@@ -54,14 +58,19 @@ func GetUserKey(id int64) string {
 	return PREFIX_USER + SPLIT + string(id)
 }
 
-// GetVideoInfoKey 需要把单独一条视频信息记录时的key ket:video
+// GetVideoInfoKey 需要把单独一条视频信息记录时的key key:video
 func GetVideoInfoKey(id int64) string {
 	return PREFIX_VIDEO_INFO + SPLIT + string(id)
 }
 
-// GetVideoFavoriteKey 需要记录一条视频被点赞时，记录的key ket:set
+// GetVideoFavoriteKey 需要记录一条视频被点赞时，记录的key key:set
 func GetVideoFavoriteKey(id int64) string {
 	return PREFIX_VIDEO_FAVORITE + SPLIT + string(id)
+}
+
+// GetVideoFavoriteNumKey 记录一条视频被点赞数量
+func GetVideoFavoriteNumKey(id int64) string {
+	return PREFIX_VIDEO_FAVORITE_NUM + SPLIT + string(id)
 }
 
 // GetVideoPostKey 需要记录一条视频被评论时，记录的key  key:list
@@ -81,5 +90,5 @@ func GetUserFollowerKey(id int64) string {
 
 // GetUserVideoKey 存一个用户发送的视频的列表的  key:list
 func GetUserVideoKey(id int64) string {
-	return PREFIX_USER_RELATION + SPLIT + string(id)
+	return PREFIX_USER_VIDEO + SPLIT + string(id)
 }
