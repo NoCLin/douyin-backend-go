@@ -7,17 +7,17 @@ redis:
   password: '123456'
   db: 0
 
-mysql:
+database:
   user: root
-  password: '1111'
-  path: '127.0.0.1:3306'
+  password: '123456'
+  path: '192.168.252.100:3306'
   database: 'test'
-  config: 'charset=utf8&parseTime=True&loc=Local'
+  config: 'charset=utf8mb4&parseTime=True&loc=Local'
   driver: 'mysql'
   maxIdleConns: 10
   maxOpenConns: 100
   log: false
-  autoMigrate: false
+  autoMigrate: true
 
 session:
   key: 'DY_SESSIONID'
@@ -27,3 +27,9 @@ session:
   path: '/'
   domain: ''
   httpOnly: true
+
+minio:
+  endpoint: "192.168.252.100:9000"
+  accessKey: "minio"
+  secretAccessKey: "minio123"
+  useSSL: false

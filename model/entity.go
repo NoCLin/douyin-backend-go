@@ -3,10 +3,12 @@ package model
 import "gorm.io/gorm"
 
 // TODO: https://gorm.io/zh_CN/docs/indexes.html
-
+//	Id int64 `gorm:"primarykey"`
+//	CreatedAt time.Time
+//	Uuid     int64 `json:"id,omitempty" `
 type Video struct {
 	gorm.Model
-	Id       int64 `json:"id,omitempty" `
+	Id       int64
 	AuthorID int64
 	Author   User   `json:"author"     `
 	PlayUrl  string `json:"play_url"            `

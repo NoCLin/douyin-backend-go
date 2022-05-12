@@ -49,4 +49,13 @@ var usersLoginInfo = map[string]model.UserInfo{
 		FollowerCount: 5,
 		IsFollow:      true,
 	},
+	"xzaToken": {
+		User: model.User{
+			Id:   27,
+			Name: "xza",
+		},
+		FollowCount:   100,
+		FollowerCount: 50,
+		IsFollow:      true,
+	},
 }
