@@ -13,7 +13,7 @@ func main() {
 	}
 	r := gin.Default()
 
-	initRouter(r)
+	InitRouter(r)
 
 	addr := "127.0.0.1:8080"
 	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")

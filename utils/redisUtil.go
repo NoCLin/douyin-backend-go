@@ -18,8 +18,7 @@ const (
 	PREFIX_VIDEO_FAVORITE_NUM = "douyin:video:favoriteNum" //视频被点赞数目
 	PREFIX_VIDEO_POST         = "douyin:video:post"        //视频评论
 	PREFIX_USER_RELATION      = "douyin:user:relation"     //关注
-	PREFIX_USER_FOLLWER       = "douyin:user:follower"     //被关注（粉丝）
-
+	PREFIX_USER_FOLLOWER      = "douyin:user:follower"     //被关注（粉丝）
 )
 
 var lock sync.Mutex
@@ -80,13 +79,13 @@ func GetVideoPostKey(id int64) string {
 }
 
 // GetUserRelationKey 用户关注了那些人  key:set
-func GetUserRelationKey(id int64) string {
-	return PREFIX_USER_RELATION + SPLIT + fmt.Sprint(id)
+func GetUserRelationKey(id string) string {
+	return PREFIX_USER_RELATION + SPLIT + id
 }
 
 // GetUserFollowerKey 用户被那些人关注,被关注者的key，一个用户用有的粉丝  key:set
-func GetUserFollowerKey(id int64) string {
-	return PREFIX_USER_FOLLWER + SPLIT + fmt.Sprint(id)
+func GetUserFollowerKey(id string) string {
+	return PREFIX_USER_FOLLOWER + SPLIT + id
 }
 
 // GetUserVideoKey 存一个用户发送的视频的列表的  key:list
