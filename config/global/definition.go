@@ -26,8 +26,8 @@ type Database struct {
 	Type     string `yaml:"type"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
-	Host     int    `yaml:"host"`
-	Port     string `yaml:"port"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
 	Database string `yaml:"database"`
 
 	MaxIdleConns int `yaml:"maxIdleConns"`
