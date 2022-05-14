@@ -10,7 +10,7 @@ import (
 
 const (
 	SPLIT                     = ":"                        //分隔符
-	PREFIX_TOKEN              = "douyin:token"             //登录token
+	PREFIX_REFRESH_TOKEN      = "douyin:refresh_token"     //refresh token
 	PREFIX_USER               = "douyin:user"              //用户信息
 	PREFIX_USER_VIDEO         = "douyin:user:video"        //用户发布的视频
 	PREFIX_VIDEO_INFO         = "douyin:video:info"        //视频信息
@@ -51,7 +51,7 @@ func GetRedisDB() (*redis.Client, error) {
 
 // GetTokenKey 存放token的key  key:token
 func GetTokenKey(token string) string {
-	return PREFIX_TOKEN + SPLIT + token
+	return PREFIX_REFRESH_TOKEN + SPLIT + token
 }
 
 // GetUserKey 把用户信息放在redis的key  key:user

@@ -3,16 +3,13 @@ package controller
 import (
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/NoCLin/douyin-backend-go/utils"
+	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"sync"
 )
-
-// usersLoginInfo use map to store user info, and key is username+password for demo
-// user data will be cleared every time the server starts
-// test data: username=zhanglei, password=douyin
 
 //var userIdSequence = int64(1)
 var mutex sync.Mutex
@@ -21,35 +18,15 @@ func Register(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": username,
-		"password": password,
-	})
-	tokenString, _ := token.SigningString()
-
 	if len(username) > 32 || len(password) > 32 {
-		c.JSON(http.StatusOK, model.UserLoginResponse{
-			Response: model.Response{
-				StatusCode: -1,
-				StatusMsg:  "the username or password is longer than 32 characters",
-			},
-			UserId: -1,
-			Token:  tokenString,
-		})
+		json_response.Error(c, -1, "the username or password is longer than 32 characters")
 		return
 	}
 
 	var user model.User
 	G.DB.Table("users").Where("name = ?", username).Find(&user)
 	if user.Name != "" {
-		c.JSON(http.StatusOK, model.UserLoginResponse{
-			Response: model.Response{
-				StatusCode: -1,
-				StatusMsg:  "the user has been existed",
-			},
-			UserId: -1,
-			Token:  tokenString,
-		})
+		json_response.Error(c, -1, "the user exists")
 		return
 	}
 
@@ -57,19 +34,27 @@ func Register(c *gin.Context) {
 
 	mutex.Lock()
 	G.DB.Table("users").Last(&lastuser)
+	// FIXME: 使用自增ID
 	user = model.User{
 		Id:       lastuser.Id + 1,
 		Name:     username,
 		Password: password,
 	}
 	G.DB.Table("users").Create(&user)
+
+	token, err := utils.GenerateToken(user.Name, strconv.FormatInt(user.Id, 10))
+	if err != nil {
+		json_response.Error(c, -1, "unknown error")
+		return
+	}
+
 	c.JSON(http.StatusOK, model.UserLoginResponse{
 		Response: model.Response{
 			StatusCode: 0,
 			StatusMsg:  "register successfully",
 		},
 		UserId: user.Id,
-		Token:  tokenString,
+		Token:  token,
 	})
 	mutex.Unlock()
 }
@@ -102,7 +87,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, _ := GenerateToken(username, strconv.FormatInt(user.Id, 10))
+	token, _ := utils.GenerateToken(username, strconv.FormatInt(user.Id, 10))
 	//_, err := CheckToken(token)
 	//fmt.Println("检验token是否创建成功: ", err)
 	//time.Sleep(time.Millisecond * 100)
@@ -122,10 +107,19 @@ func Login(c *gin.Context) {
 }
 
 func UserInfo(c *gin.Context) {
-	userId := c.Query("user_id")
+	//userId := c.Query("user_id")
+	token := c.Query("token")
 
-	var user model.Follow
-	G.DB.Table("users").Where("id = ?", userId).Find(&user)
+	userClaim, err := utils.CheckToken(token)
+	if err != nil {
+		// TODO: global check
+		json_response.Error(c, -1, "forbidden")
+		return
+	}
+
+	var user model.User
+
+	G.DB.Table("users").Where("id = ?", userClaim.UserID).Find(&user)
 
 	if user.Name == "" {
 		c.JSON(http.StatusOK, model.UserResponse{
@@ -148,19 +142,16 @@ func UserInfo(c *gin.Context) {
 				Id:   user.Id,
 				Name: user.Name,
 			},
-			FollowCount:   user.FolloweeId,
-			FollowerCount: user.FollowerId,
-			IsFollow:      user.IsFollow,
+			FollowCount:   -1,
+			FollowerCount: -1,
 		},
 	})
 }
 
 func Test(c *gin.Context) {
-	user := model.User{Name: "Jinzhu"}
-
-	result := G.DB.Create(&user)
-	print(result)
-	c.JSON(http.StatusOK, model.UserResponse{
-		Response: model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
+	json_response.OK(c, "OK", model.User{
+		Id:   1,
+		Name: "123",
 	})
+	//json_response.Error(c, -1, "不OK")
 }

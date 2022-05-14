@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/dgrijalva/jwt-go"
 	"gorm.io/gorm"
 )
 
@@ -39,10 +38,4 @@ type Follow struct {
 	FollowerId int64  `json:"follower_id,omitempty" ` // 关注人
 	FolloweeId int64  `json:"followee_id,omitempty" ` // 被关注人
 	IsFollow   bool   `json:"is_follow,omitempty"`
-}
-
-type Claims struct {
-	Username string `json:"username"`
-	UserID   string `json:"user_id"`
-	jwt.StandardClaims
 }
