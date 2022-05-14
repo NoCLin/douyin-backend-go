@@ -5,10 +5,17 @@ import (
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"os"
 )
 
 func InitConfig() error {
-	viper.SetConfigName("dev")
+
+	env := os.Getenv("DOUYIN_ENV")
+	if env == "" {
+		env = "config"
+	}
+
+	viper.SetConfigName(env)
 	viper.AddConfigPath("./config")
 	viper.SetConfigType("yml")
 	viper.AutomaticEnv()
@@ -26,7 +33,6 @@ func InitConfig() error {
 		panic(fmt.Errorf("fatal error while decode config file: %v", err))
 	}
 
-	fmt.Println(G.Config)
 	err := initGorm()
 	if err != nil {
 		return err

@@ -23,5 +23,6 @@ go.work
 .idea
 douyin-backend-go
 *.db
-
-config
+# ignore config files
+config/*.yml
+!config/config.demo.yml

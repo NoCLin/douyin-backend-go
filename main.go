@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/NoCLin/douyin-backend-go/config"
+	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,12 +12,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	addr := G.Config.Server.Addr
+	gin.SetMode(G.Config.Server.Mode)
+
 	r := gin.Default()
+	initRouter(r)
 
-	InitRouter(r)
-
-	addr := "127.0.0.1:8080"
-	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	err = r.Run(addr)
 	if err != nil {
 		fmt.Println("启动服务器失败", err)

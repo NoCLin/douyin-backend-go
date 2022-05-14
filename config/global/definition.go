@@ -4,36 +4,34 @@ type Configuration struct {
 	Server   `yaml:"server"`
 	Redis    `yaml:"redis"`
 	Database `yaml:"database"`
-	Url      `yaml:"url"`
 }
 
 type Server struct {
-	Port      int    `yaml:"port"`
+	Addr      string `yaml:"addr"`
+	URLPrefix string `yaml:"prefix"`
 	Mode      string `yaml:"mode"`
-	LimitNum  int    `yaml:"limitNum"`
-	UserMongo bool   `yaml:"useMongo"`
-	UserRedis bool   `yaml:"useRedis"`
+
+	//LimitNum  int    `yaml:"limitNum"`
+	//UserMongo bool   `yaml:"useMongo"`
+	//UserRedis bool   `yaml:"useRedis"`
 }
 
 type Redis struct {
 	Addr     string `yaml:"addr"`
 	Password string `yaml:"password"`
-	Db       int    `yaml:"db"`
+	DB       int    `yaml:"db"`
 }
 
 type Database struct {
-	User         string `yaml:"user"`
-	Password     string `yaml:"password"`
-	Path         string `yaml:"path"`
-	Database     string `yaml:"database"`
-	Config       string `yaml:"config"`
-	Driver       string `yaml:"driver"`
-	MaxIdleConns int    `yaml:"maxIdleConns"`
-	MaxOpenConns int    `yaml:"maxOpenConns"`
-	Log          bool   `yaml:"log"`
-	AutoMigrate  bool   `yaml:"autoMigrate"`
-}
+	Type     string `yaml:"type"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Database string `yaml:"database"`
 
-type Url struct {
-	Prefix string `yaml:"prefix"`
+	MaxIdleConns int `yaml:"maxIdleConns"`
+	MaxOpenConns int `yaml:"maxOpenConns"`
+	//Log          bool `yaml:"log"`
+	AutoMigrate bool `yaml:"autoMigrate"`
 }
