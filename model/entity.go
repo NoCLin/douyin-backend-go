@@ -9,6 +9,7 @@ import (
 
 type Video struct {
 	gorm.Model
+	// TODO: HashID
 	Id       int64 `json:"id,omitempty" `
 	AuthorID int64
 	Author   User   `json:"author"     `
