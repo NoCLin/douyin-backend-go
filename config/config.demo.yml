@@ -11,15 +11,14 @@ database:
   type: mysql
   #  type: sqlite
   user: root
-  password: 'pass'
-  path: '127.0.0.1:3306'
-  database: 'test'
-#  config: 'charset=utf8&parseTime=True&loc=Local'
+  password: pass
+  database: test
+  #  config: 'charset=utf8&parseTime=True&loc=Local'
 
   maxIdleConns: 10
   maxOpenConns: 100
   log: false
-  autoMigrate: false
+  autoMigrate: true
 
 session:
   key: 'DY_SESSIONID'
@@ -29,3 +28,9 @@ session:
   path: '/'
   domain: ''
   httpOnly: true
+
+minio:
+  endpoint: "127.0.0.1:9000"
+  accessKey: "minio"
+  secretAccessKey: "minio123"
+  useSSL: false

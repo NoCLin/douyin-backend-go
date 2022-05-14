@@ -41,5 +41,10 @@ func InitConfig() error {
 	if err != nil {
 		return err
 	}
+	err = initMinIO()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

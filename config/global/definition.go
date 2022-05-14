@@ -4,6 +4,7 @@ type Configuration struct {
 	Server   `yaml:"server"`
 	Redis    `yaml:"redis"`
 	Database `yaml:"database"`
+	MinIO    `yaml:"minio"`
 }
 
 type Server struct {
@@ -20,6 +21,13 @@ type Redis struct {
 	Addr     string `yaml:"addr"`
 	Password string `yaml:"password"`
 	DB       int    `yaml:"db"`
+}
+
+type MinIO struct {
+	Endpoint        string `yaml:"endpoint"`
+	AccessKey       string `yaml:"accessKey"`
+	SecretAccessKey string `yaml:"secretAccessKey"`
+	UseSSL          bool   `yaml:"useSSL"`
 }
 
 type Database struct {

@@ -8,8 +8,8 @@ import (
 
 type Video struct {
 	gorm.Model
+
 	// TODO: HashID
-	Id       int64 `json:"id,omitempty" `
 	AuthorID int64
 	Author   User   `json:"author"     `
 	PlayUrl  string `json:"play_url"            `
@@ -17,7 +17,8 @@ type Video struct {
 }
 
 type Comment struct {
-	Id         int64 `json:"id,omitempty"`
+	gorm.Model
+
 	UserID     int64
 	User       User   `json:"user" `
 	Content    string `json:"content,omitempty" `
@@ -25,15 +26,17 @@ type Comment struct {
 }
 
 type User struct {
-	Id   int64  `json:"id,omitempty"`
-	Name string `json:"name,omitempty" `
+	gorm.Model
+	ID   uint   `gorm:"primarykey;AUTO_INCREMENT"`
+	Name string `json:"name"`
 	// TODO: ignore Password in JSON
 	Password       string `json:"-" `
 	PasswordHashed string `json:"-" `
 }
 
 type Follow struct {
-	Id         int64  `json:"id,omitempty"`
+	gorm.Model
+
 	Name       string `json:"name,omitempty"`
 	FollowerId int64  `json:"follower_id,omitempty" ` // 关注人
 	FolloweeId int64  `json:"followee_id,omitempty" ` // 被关注人

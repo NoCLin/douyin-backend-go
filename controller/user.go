@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"errors"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
 	"github.com/NoCLin/douyin-backend-go/utils"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"gorm.io/gorm"
+	"log"
 	"strconv"
 	"sync"
 )
@@ -15,8 +17,8 @@ import (
 var mutex sync.Mutex
 
 func Register(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	username := c.Query("username")
+	password := c.Query("password")
 
 	if len(username) > 32 || len(password) > 32 {
 		json_response.Error(c, -1, "the username or password is longer than 32 characters")
@@ -24,70 +26,61 @@ func Register(c *gin.Context) {
 	}
 
 	var user model.User
-	G.DB.Table("users").Where("name = ?", username).Find(&user)
-	if user.Name != "" {
-		json_response.Error(c, -1, "the user exists")
+	err := G.DB.Table("users").Where("name = ?", username).Take(&user).Error
+	if err == nil {
+		json_response.Error(c, -1, "the username already exists.")
 		return
+	} else {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			json_response.Error(c, -1, "unknown error")
+		}
 	}
 
-	var lastuser model.User
-
-	mutex.Lock()
-	G.DB.Table("users").Last(&lastuser)
-	// FIXME: 使用自增ID
+	// TODO: hashedPassword
 	user = model.User{
-		Id:       lastuser.Id + 1,
 		Name:     username,
 		Password: password,
 	}
-	G.DB.Table("users").Create(&user)
 
-	token, err := utils.GenerateToken(user.Name, strconv.FormatInt(user.Id, 10))
+	if result := G.DB.Create(&user); result.Error != nil {
+
+		json_response.Error(c, -1, "register failed.")
+		log.Fatalf(result.Error.Error())
+		return
+	}
+
+	token, err := utils.GenerateToken(user.Name, strconv.FormatInt(int64(user.ID), 10))
 	if err != nil {
 		json_response.Error(c, -1, "unknown error")
 		return
 	}
 
-	c.JSON(http.StatusOK, model.UserLoginResponse{
-		Response: model.Response{
-			StatusCode: 0,
-			StatusMsg:  "register successfully",
-		},
-		UserId: user.Id,
+	json_response.OK(c, "ok", model.UserLoginResponse{
+		UserId: int64(user.ID),
 		Token:  token,
 	})
-	mutex.Unlock()
+
 }
 
 func Login(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	username := c.Query("username")
+	password := c.Query("password")
 
 	var user model.User
-	G.DB.Table("users").Where("name = ?", username).First(&user)
-	if user.Name == "" {
-		c.JSON(http.StatusOK, model.UserLoginResponse{
-			Response: model.Response{
-				StatusCode: -1,
-				StatusMsg:  "the username doesn't exist",
-			},
-			UserId: -1,
-		})
+	err := G.DB.Table("users").Where("name = ?", username).Take(&user).Error
+
+	if err != nil {
+		json_response.Error(c, -1, "the username doesn't exist")
+		log.Fatalf("login error", err)
 		return
 	}
 
 	if user.Password != password {
-		c.JSON(http.StatusOK, model.UserLoginResponse{
-			Response: model.Response{
-				StatusCode: -1,
-				StatusMsg:  "the password is wrong",
-			},
-			UserId: -1,
-		})
+		json_response.Error(c, -1, "login failed")
 		return
 	}
 
-	token, _ := utils.GenerateToken(username, strconv.FormatInt(user.Id, 10))
+	token, _ := utils.GenerateToken(username, strconv.FormatInt(int64(user.ID), 10))
 	//_, err := CheckToken(token)
 	//fmt.Println("检验token是否创建成功: ", err)
 	//time.Sleep(time.Millisecond * 100)
@@ -96,12 +89,8 @@ func Login(c *gin.Context) {
 	//_, err = CheckToken("adjacent")
 	//fmt.Println("测试token: ", err)
 
-	c.JSON(http.StatusOK, model.UserLoginResponse{
-		Response: model.Response{
-			StatusCode: 0,
-			StatusMsg:  "login successfully",
-		},
-		UserId: user.Id,
+	json_response.OK(c, "ok", model.UserLoginResponse{
+		UserId: int64(user.ID),
 		Token:  token,
 	})
 }
@@ -111,6 +100,7 @@ func UserInfo(c *gin.Context) {
 	token := c.Query("token")
 
 	userClaim, err := utils.CheckToken(token)
+
 	if err != nil {
 		// TODO: global check
 		json_response.Error(c, -1, "forbidden")
@@ -119,39 +109,23 @@ func UserInfo(c *gin.Context) {
 
 	var user model.User
 
-	G.DB.Table("users").Where("id = ?", userClaim.UserID).Find(&user)
-
-	if user.Name == "" {
-		c.JSON(http.StatusOK, model.UserResponse{
-			Response: model.Response{
-				StatusCode: -1,
-				StatusMsg:  "the user doesn't exist",
-			},
-			User: model.UserInfo{},
-		})
+	err = G.DB.Table("users").Where("id = ?", userClaim.UserID).Take(&user).Error
+	if err != nil {
+		json_response.Error(c, -1, "user not exists")
 		return
 	}
-
-	c.JSON(http.StatusOK, model.UserResponse{
-		Response: model.Response{
-			StatusCode: 0,
-			StatusMsg:  "get user info successfully",
-		},
-		User: model.UserInfo{
-			User: model.User{
-				Id:   user.Id,
-				Name: user.Name,
-			},
-			FollowCount:   -1,
-			FollowerCount: -1,
-		},
+	json_response.OK(c, "ok", model.UserInfo{
+		User:          user,
+		FollowCount:   -1,
+		FollowerCount: -1,
 	})
+
 }
 
 func Test(c *gin.Context) {
 	json_response.OK(c, "OK", model.User{
-		Id:   1,
-		Name: "123",
+		Model: gorm.Model{ID: 1},
+		Name:  "123",
 	})
 	//json_response.Error(c, -1, "不OK")
 }

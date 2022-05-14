@@ -26,3 +26,6 @@ douyin-backend-go
 # ignore config files
 config/*.yml
 !config/config.demo.yml
+
+#videos
+*.mp4
