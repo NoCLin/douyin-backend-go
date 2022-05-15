@@ -60,18 +60,18 @@ func GetUserKey(id int64) string {
 }
 
 // GetVideoInfoKey 需要把单独一条视频信息记录时的key key:video
-func GetVideoInfoKey(id int64) string {
-	return PREFIX_VIDEO_INFO + SPLIT + fmt.Sprint(id)
+func GetVideoInfoKey(id string) string {
+	return PREFIX_VIDEO_INFO + SPLIT + id
 }
 
 // GetVideoFavoriteKey 需要记录一条视频被点赞时，记录的key key:set
-func GetVideoFavoriteKey(id int64) string {
-	return PREFIX_VIDEO_FAVORITE + SPLIT + fmt.Sprint(id)
+func GetVideoFavoriteKey(id string) string {
+	return PREFIX_VIDEO_FAVORITE + SPLIT + id
 }
 
 // GetVideoFavoriteNumKey 记录一条视频被点赞数量
-func GetVideoFavoriteNumKey(id int64) string {
-	return PREFIX_VIDEO_FAVORITE_NUM + SPLIT + fmt.Sprint(id)
+func GetVideoFavoriteNumKey(id string) string {
+	return PREFIX_VIDEO_FAVORITE_NUM + SPLIT + id
 }
 
 // GetVideoPostKey 需要记录一条视频被评论时，记录的key  key:list
