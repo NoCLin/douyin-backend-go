@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func initMinIO() error {
+func initMinIO() *minio.Client {
 
 	// Initialize minio client object.
 	minioClient, err := minio.New(G.Config.Endpoint, &minio.Options{
@@ -18,9 +18,16 @@ func initMinIO() error {
 		log.Fatalln(err)
 	}
 
-	//log.Printf("%#v\n", minioClient) // minioClient is now set up
+	return minioClient
+}
 
-	//return minioClient
-	G.MinioClient = minioClient
-	return nil
+func initTestMinio() *minio.Client {
+	client, err := minio.New("a", &minio.Options{
+		Creds: credentials.NewStaticV4("ss", "ss", ""),
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return client
 }

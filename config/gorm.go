@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/DATA-DOG/go-sqlmock"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
 	"gorm.io/driver/mysql"
@@ -11,8 +12,7 @@ import (
 	"strings"
 )
 
-func initGorm() error {
-	d := G.Config.Database
+func initGorm(d G.Database) *gorm.DB {
 	var db *gorm.DB
 	var err error
 
@@ -73,7 +73,20 @@ func initGorm() error {
 		}
 	}
 
-	G.DB = db
-	return nil
+	return db
 
+}
+
+func initTestGorm() (*gorm.DB, sqlmock.Sqlmock) {
+	db, mock, _ := sqlmock.New()
+	// no regex
+	//db, mock, _ = sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+
+	// https://github.com/DATA-DOG/go-sqlmock/issues/118
+	mockDB, _ := gorm.Open(mysql.New(mysql.Config{
+		SkipInitializeWithVersion: true,
+		Conn:                      db,
+	}), &gorm.Config{})
+
+	return mockDB, mock
 }

@@ -8,14 +8,9 @@ import (
 	"os"
 )
 
-func InitConfig() error {
+func loadConfig(configKey string) {
 
-	env := os.Getenv("DOUYIN_ENV")
-	if env == "" {
-		env = "config"
-	}
-
-	viper.SetConfigName(env)
+	viper.SetConfigName(configKey)
 	viper.AddConfigPath("./config")
 	viper.SetConfigType("yml")
 	viper.AutomaticEnv()
@@ -33,18 +28,39 @@ func InitConfig() error {
 		panic(fmt.Errorf("fatal error while decode config file: %v", err))
 	}
 
-	err := initGorm()
-	if err != nil {
-		return err
-	}
-	err = initRedis()
-	if err != nil {
-		return err
-	}
-	err = initMinIO()
-	if err != nil {
-		return err
+}
+
+func InitConfig() {
+	env := os.Getenv("DOUYIN_ENV")
+	if env == "" {
+		env = "config"
 	}
 
-	return nil
+	loadConfig(env)
+
+	db := initGorm(G.Config.Database)
+	G.DB = db
+	G.DB = db.Debug()
+
+	redisDB := initRedis()
+
+	G.RedisDB = redisDB
+
+	minioClient := initMinIO()
+	G.MinioClient = minioClient
+}
+
+func InitTestConfig() {
+
+	mockDB, mock := initTestGorm()
+	G.DB = mockDB.Debug()
+	G.DBMock = mock
+
+	redisDB, redisMock := initTestRedis()
+
+	G.RedisDB = redisDB
+	G.RedisMock = redisMock
+
+	minioClient := initTestMinio()
+	G.MinioClient = minioClient
 }
