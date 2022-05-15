@@ -23,22 +23,23 @@ func RelationAction(c *gin.Context) {
 	}
 	relationKey := utils.GetUserRelationKey(userId)
 	followerKey := utils.GetUserFollowerKey(toUserId)
+
 	if actionType == "1" {
 		pipe := global.RedisDB.TxPipeline()
 		//关注者的关注列表
-		global.RedisDB.SAdd(relationKey, toUserId)
+		global.RedisDB.SAdd(c, relationKey, toUserId)
 		//被关注者粉丝列表
-		global.RedisDB.SAdd(followerKey, userId)
-		_, err := pipe.Exec()
+		global.RedisDB.SAdd(c, followerKey, userId)
+		_, err := pipe.Exec(c)
 		if err != nil {
 		}
 	} else if actionType == "2" {
 		pipe := global.RedisDB.TxPipeline()
 		//关注者的关注列表
-		global.RedisDB.SRem(relationKey, toUserId)
+		global.RedisDB.SRem(c, relationKey, toUserId)
 		//被关注者粉丝列表
-		global.RedisDB.SRem(followerKey, userId)
-		_, err := pipe.Exec()
+		global.RedisDB.SRem(c, followerKey, userId)
+		_, err := pipe.Exec(c)
 		if err != nil {
 		}
 	} else {
@@ -57,14 +58,14 @@ func FollowList(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	}
 	relationKey := utils.GetUserRelationKey(user_id)
-	es, _ := global.RedisDB.SMembers(relationKey).Result()
+	es, _ := global.RedisDB.SMembers(c, relationKey).Result()
 	len := len(es)
 	var user_list = make([]model.UserInfo, len, len)
 	for i := 0; i < len; i++ {
 		curRelationkey := utils.GetUserRelationKey(es[i])
 		curFollowerkey := utils.GetUserFollowerKey(es[i])
-		followCount, _ := global.RedisDB.SCard(curRelationkey).Result()
-		followerCount, _ := global.RedisDB.SCard(curFollowerkey).Result()
+		followCount, _ := global.RedisDB.SCard(c, curRelationkey).Result()
+		followerCount, _ := global.RedisDB.SCard(c, curFollowerkey).Result()
 		var user model.User
 
 		//id, _ := strconv.ParseInt(es[i], 10, 64)
@@ -102,15 +103,15 @@ func FollowerList(c *gin.Context) {
 	}
 	followerKey := utils.GetUserFollowerKey(user_id)
 	relationKey := utils.GetUserRelationKey(user_id)
-	es, _ := global.RedisDB.SMembers(followerKey).Result()
+	es, _ := global.RedisDB.SMembers(c, followerKey).Result()
 	len := len(es)
 	var user_list = make([]model.UserInfo, len, len)
 	for i := 0; i < len; i++ {
 		curRelationkey := utils.GetUserRelationKey(es[i])
 		curFollowerkey := utils.GetUserFollowerKey(es[i])
-		followCount, _ := global.RedisDB.SCard(curRelationkey).Result()
-		followerCount, _ := global.RedisDB.SCard(curFollowerkey).Result()
-		follow, _ := global.RedisDB.SIsMember(relationKey, es[i]).Result()
+		followCount, _ := global.RedisDB.SCard(c, curRelationkey).Result()
+		followerCount, _ := global.RedisDB.SCard(c, curFollowerkey).Result()
+		follow, _ := global.RedisDB.SIsMember(c, relationKey, es[i]).Result()
 		var user model.User
 		id, _ := strconv.ParseInt(es[i], 10, 64)
 		global.DB.Where("id = ?", id).Find(&user)

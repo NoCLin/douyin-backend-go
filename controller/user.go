@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
 	"github.com/NoCLin/douyin-backend-go/utils"
@@ -10,13 +11,10 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"strconv"
-	"sync"
 )
 
-//var userIdSequence = int64(1)
-var mutex sync.Mutex
-
 func Register(c *gin.Context) {
+
 	username := c.Query("username")
 	password := c.Query("password")
 
@@ -32,7 +30,9 @@ func Register(c *gin.Context) {
 		return
 	} else {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Println(err)
 			json_response.Error(c, -1, "unknown error")
+			return
 		}
 	}
 
@@ -41,11 +41,10 @@ func Register(c *gin.Context) {
 		Name:     username,
 		Password: password,
 	}
-
-	if result := G.DB.Create(&user); result.Error != nil {
-
+	result := G.DB.Create(&user)
+	if result.Error != nil {
+		log.Println("register insert failed.", result.Error)
 		json_response.Error(c, -1, "register failed.")
-		log.Fatalf(result.Error.Error())
 		return
 	}
 
@@ -71,7 +70,6 @@ func Login(c *gin.Context) {
 
 	if err != nil {
 		json_response.Error(c, -1, "the username doesn't exist")
-		log.Fatalf("login error", err)
 		return
 	}
 

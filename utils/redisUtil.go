@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"sync"
 )
 
@@ -33,7 +34,7 @@ func GetRedisDB() (*redis.Client, error) {
 	defer lock.Unlock()
 	if G.RedisDB == nil { //避免并发的建立客户端连接，客户端连接可以只有一个，单例的
 		redisDB := redis.NewClient(&redis.Options{})
-		_, err := redisDB.Ping().Result()
+		_, err := redisDB.Ping(context.Background()).Result()
 
 		if err != nil {
 			return nil, errors.New("failed to initialize redis")

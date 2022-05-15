@@ -8,10 +8,7 @@ import (
 )
 
 func main() {
-	err := config.InitConfig()
-	if err != nil {
-		panic(err)
-	}
+	config.InitConfig()
 
 	addr := G.Config.Server.Addr
 	gin.SetMode(G.Config.Server.Mode)
@@ -19,7 +16,7 @@ func main() {
 	r := gin.Default()
 	initRouter(r)
 
-	err = r.Run(addr)
+	err := r.Run(addr)
 	if err != nil {
 		fmt.Println("启动服务器失败", err)
 		panic(err)

@@ -1,0 +1,11 @@
+### 注册
+POST http://127.0.0.1:8080/douyin/user/register/?username=dsfdf&password=1
+Accept: application/json
+
+###
+POST http://127.0.0.1:8080/douyin/user/login/?username=dafda&password=1
+
+###
+GET http://127.0.0.1:8080/douyin/user/?token=cscs.eyJ1c2VybmFtZSI6IjIyMjIyMjIiLCJ1c2VyX2lkIjoiMTgiLCJleHAiOjE2NTI1MTk2MzZ9.kHGs3VYl8K_c9_ewcQ2dOaOSdLVHDcVH5--KFh7HgZ0
+
+###
