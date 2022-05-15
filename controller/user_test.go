@@ -21,7 +21,7 @@ func assertBasicResponse(t *testing.T, r gofight.HTTPResponse, statusCode int) m
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, float64(statusCode), obj["StatusCode"])
+	assert.Equal(t, float64(statusCode), obj["status_code"])
 	return obj
 }
 
@@ -33,7 +33,7 @@ func TestRegister(t *testing.T) {
 	r := gofight.New()
 
 	sqlQueryUser := "SELECT * FROM `users` WHERE name = ? AND `users`.`deleted_at` IS NULL LIMIT 1"
-	sqlCreateUser := "INSERT INTO `users` (`created_at`,`updated_at`,`deleted_at`,`name`,`password`,`password_hashed`) VALUES (?,?,?,?,?,?)"
+	sqlCreateUser := "INSERT INTO `users` (`created_at`,`updated_at`,`deleted_at`,`name`,`password`,`password_hashed`,`follow_count`,`follower_count`) VALUES (?,?,?,?,?,?,?,?)"
 	t.Run("OK", func(t *testing.T) {
 
 		username := "test_username"
@@ -47,14 +47,14 @@ func TestRegister(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(sqlQueryUser)).WithArgs(username).WillReturnRows(sqlmock.NewRows([]string{"id"}))
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(sqlCreateUser)).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, username, password, "").
+			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, username, password, "", 0, 0).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectCommit()
 
 		r.GET("/").SetQuery(q).SetDebug(gfDebug).
 			Run(engine, func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
 				obj := assertBasicResponse(t, r, 0)
-				assert.Contains(t, obj["Token"], "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9") // jwt header
+				assert.Contains(t, obj["token"], "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9") // jwt header
 			})
 
 	})
