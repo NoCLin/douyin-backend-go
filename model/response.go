@@ -11,9 +11,9 @@ type CommentResponse struct {
 
 type VideoResponse struct {
 	Video
-	FavoriteCount int64 `json:"favorite_count,omitempty"  `
-	CommentCount  int64 `json:"comment_count,omitempty"    `
-	IsFavorite    bool  `json:"is_favorite,omitempty" `
+	FavoriteCount int64 `json:"favorite_count"`
+	CommentCount  int64 `json:"comment_count"    `
+	IsFavorite    bool  `json:"is_favorite" `
 }
 
 type UserInfo struct {
@@ -44,7 +44,6 @@ type VideoListResponse struct {
 }
 
 type FeedResponse struct {
-	Response
 	VideoList []VideoResponse `json:"video_list,omitempty"`
 	NextTime  int64           `json:"next_time,omitempty"`
 }

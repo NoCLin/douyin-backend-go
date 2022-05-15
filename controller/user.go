@@ -122,7 +122,7 @@ func UserInfo(c *gin.Context) {
 
 func Test(c *gin.Context) {
 	json_response.OK(c, "OK", model.User{
-		Model: gorm.Model{ID: 1},
+		Model: model.Model{ID: 1},
 		Name:  "123",
 	})
 	//json_response.Error(c, -1, "不OK")

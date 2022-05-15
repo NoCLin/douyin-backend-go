@@ -5,7 +5,6 @@ import (
 	"github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"strconv"
@@ -62,7 +61,7 @@ func CommentAction(c *gin.Context) {
 		}
 
 		delCommit := model.Comment{
-			Model: gorm.Model{
+			Model: model.Model{
 				ID: uint(commId), //这里只提供id便可删除
 			},
 		}
