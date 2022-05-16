@@ -4,6 +4,7 @@ import (
 	"errors"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/dgrijalva/jwt-go"
+	"log"
 	"time"
 )
 
@@ -18,20 +19,17 @@ func GenerateToken(username string, userid string) (string, error) {
 		Username: username,
 		UserID:   userid,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 2).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		},
 	})
 
 	tokenString, err := claims.SignedString(G.TokenSecret)
 
-	// FIXME: jwt 不需要存储
-	//G.RedisDB.HSet(utils.PREFIX_REFRESH_TOKEN, tokenString, userid)
-
 	return tokenString, err
 }
 
 func CheckToken(tokenString string) (*Claims, error) {
-
+	log.Println("CheckToken is calling")
 	claim := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claim, func(token *jwt.Token) (interface{}, error) {
 		return G.TokenSecret, nil
@@ -44,11 +42,10 @@ func CheckToken(tokenString string) (*Claims, error) {
 	}
 
 	// TODO: 动态配置时间
-	//如果距离过期时间小于 1 min,更新过期时间
-	if time.Unix(claim.ExpiresAt, 0).Sub(time.Now()) > time.Minute {
-		// FIXME: Token 过期为未授权
-		return claim, nil
+	if time.Unix(claim.ExpiresAt, 0).Sub(time.Now()) <= 0 {
+		return claim, errors.New("the token has expired,please login again")
 	}
-	claim.ExpiresAt = time.Now().Add(time.Hour * 2).Unix()
+
+	log.Println("CheckToken successfully")
 	return claim, nil
 }

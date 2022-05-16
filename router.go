@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/NoCLin/douyin-backend-go/controller"
+	"github.com/NoCLin/douyin-backend-go/handler"
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,6 +10,7 @@ func initRouter(r *gin.Engine) {
 	// public directory is used to serve static resources
 	r.Static("/static", "./public")
 	apiRouter := r.Group("/douyin")
+	apiRouter.Use(handler.Recover, handler.TokenHandler)
 
 	// basic apis
 	apiRouter.GET("/feed/", controller.Feed)
