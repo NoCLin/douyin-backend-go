@@ -1,0 +1,16 @@
+#mysql
+docker run --name mysql-test -d -p 3306:3306 -v /home/mysql/conf:/etc/mysql/conf.d -v /home/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql:5.7
+
+#redis
+docker run -itd --name redis-test -p 6379:6379 --restart always redis
+
+
+#minio
+docker run \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  --name minio1 \
+  -v /mnt/data:/data \
+  -e "MINIO_ROOT_USER=minio" \
+  -e "MINIO_ROOT_PASSWORD=minio123" \
+  quay.io/minio/minio server /data --console-address ":9001"
