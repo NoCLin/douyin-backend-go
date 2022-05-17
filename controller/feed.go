@@ -5,46 +5,41 @@ import (
 	"fmt"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
-	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
 
+// Feed same demo video list for every request
 func Feed(c *gin.Context) {
-
-	// TOOD: latest_time
-
-	var videos []model.Video
-
-	// TODO: 过滤已删除
-	// TODO: 关联查询 user
-	// TODO: 填充字段
-	G.DB.Order("created_at desc").Limit(30).Find(&videos)
-
-	responseVideos := make([]model.VideoResponse, len(videos))
-	for i := 0; i < len(videos); i++ {
-		responseVideos[i].Video = videos[i]
-		//responseVideos[i].CreatedAt = VideoList[i].CreatedAt
-		responseVideos[i].Author.Name = "xxx"
-		responseVideos[i].Author.ID = 999
-		responseVideos[i].Author.FollowCount = 999
-		responseVideos[i].Author.FollowerCount = 999
-
-		responseVideos[i].FavoriteCount = 1
-		responseVideos[i].CommentCount = 1
-		responseVideos[i].IsFavorite = true
+	//查询mysql获取最
+	//G.DB.Select()
+	VideoList := make([]model.Video, 3)
+	fmt.Println(len(VideoList))
+	G.DB.Order("created_at desc").Limit(30).Find(&VideoList)
+	fmt.Println(len(VideoList))
+	fmt.Println(VideoList[0])
+	fmt.Println(VideoList[1])
+	fmt.Println(VideoList[2])
+	//TODO: FavoriteCount CommentCount  IsFavorite
+	//fmt.Println(len(VideoList),len(VideoResponse))
+	nums := 30
+	if len(VideoList) < nums {
+		nums = len(VideoList)
 	}
-
+	VideoResponse := make([]model.VideoResponse, nums)
+	for i := 0; i < nums; i++ {
+		VideoResponse[i].Video = VideoList[i]
+	}
 	feed := model.FeedResponse{
-		VideoList: responseVideos,
+		VideoList: VideoResponse,
 		NextTime:  time.Now().Unix(),
 	}
-	json_response.OK(c, "ok", feed)
-	return
+	c.JSON(http.StatusOK, feed)
 }
 
 func GetVideo(c *gin.Context) {
