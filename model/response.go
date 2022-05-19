@@ -16,6 +16,7 @@ type VideoResponse struct {
 	IsFavorite    bool  `json:"is_favorite" `
 }
 
+
 type UserInfo struct {
 	User
 	FollowCount   int64 `json:"follow_count,omitempty"`
