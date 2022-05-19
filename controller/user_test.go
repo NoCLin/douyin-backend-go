@@ -25,6 +25,7 @@ func assertBasicResponse(t *testing.T, r gofight.HTTPResponse, statusCode int) m
 	return obj
 }
 
+// TODO: test 加上 middlewares
 func TestRegister(t *testing.T) {
 
 	resp := httptest.NewRecorder()

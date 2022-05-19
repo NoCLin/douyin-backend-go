@@ -1,8 +1,6 @@
-package handler
+package middleware
 
 import (
-	"fmt"
-	"github.com/NoCLin/douyin-backend-go/utils"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -22,19 +20,4 @@ func Recover(c *gin.Context) {
 	}()
 	//加载完 defer recover，继续后续接口调用
 	c.Next()
-}
-
-func TokenHandler(c *gin.Context) {
-	tokenString := c.Query("token")
-	if tokenString == "" {
-		return
-	}
-
-	_, err := utils.CheckToken(tokenString)
-	if err != nil {
-		log.Printf("token has error: %v\n", err)
-		json_response.Error(c, -1, fmt.Sprintf("%v", err))
-		//终止后续接口调用
-		c.Abort()
-	}
 }

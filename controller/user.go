@@ -94,20 +94,10 @@ func Login(c *gin.Context) {
 }
 
 func UserInfo(c *gin.Context) {
-	//userId := c.Query("user_id")
-	token := c.Query("token")
-
-	userClaim, err := utils.CheckToken(token)
-
-	if err != nil {
-		// TODO: global check
-		json_response.Error(c, -1, "forbidden")
-		return
-	}
 
 	var user model.User
 
-	err = G.DB.Table("users").Where("id = ?", userClaim.UserID).Take(&user).Error
+	err := G.DB.Table("users").Where("id = ?", c.MustGet("userID")).Take(&user).Error
 	if err != nil {
 		json_response.Error(c, -1, "user not exists")
 		return
