@@ -81,7 +81,6 @@ func Login(c *gin.Context) {
 		json_response.Error(c, -1, "the username doesn't exist")
 		return
 	}
-
 	//if user.Password != password {
 	//	json_response.Error(c, -1, "login failed")
 	//	return

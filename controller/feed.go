@@ -33,12 +33,13 @@ func Feed(c *gin.Context) {
 		responseVideos[i].Author.ID = 999
 		responseVideos[i].Author.FollowCount = 999
 		responseVideos[i].Author.FollowerCount = 999
-
 		responseVideos[i].FavoriteCount = 1
 		responseVideos[i].CommentCount = 1
 		responseVideos[i].IsFavorite = true
 	}
-
+	if len(videos)==0{
+		responseVideos = DemoVideos
+	}
 	feed := model.FeedResponse{
 		VideoList: responseVideos,
 		NextTime:  time.Now().Unix(),
