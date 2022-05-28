@@ -115,10 +115,14 @@ func UserInfo(c *gin.Context) {
 		json_response.Error(c, -1, "user not exists")
 		return
 	}
+	curRelationkey := utils.GetUserRelationKey(strconv.Itoa(int(user.ID)))
+	curFollowerkey := utils.GetUserFollowerKey(strconv.Itoa(int(user.ID)))
+	followCount, _ := G.RedisDB.SCard(c, curRelationkey).Result()
+	followerCount, _ := G.RedisDB.SCard(c, curFollowerkey).Result()
 	json_response.OK(c, "ok", model.UserInfo{
 		User:          user,
-		FollowCount:   -1,
-		FollowerCount: -1,
+		FollowCount:   followCount,
+		FollowerCount: followerCount,
 	})
 
 }

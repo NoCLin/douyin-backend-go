@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/NoCLin/douyin-backend-go/config/global"
+	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
 	"github.com/NoCLin/douyin-backend-go/utils"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -11,16 +14,15 @@ import (
 
 // RelationAction no practical effect, just check if token is valid
 func RelationAction(c *gin.Context) {
-	token := c.Query("token")
-	userId := c.Query("user_id")
+	tokenString := c.Query("token")
+	claim := &utils.Claims{}
+	token, _ := jwt.ParseWithClaims(tokenString, claim, func(token *jwt.Token) (interface{}, error) {
+		return G.TokenSecret, nil
+	})
+	_ = token
+	userId := claim.UserID
 	toUserId := c.Query("to_user_id")
 	actionType := c.Query("action_type")
-	if _, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 0})
-	} else {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-		return
-	}
 	relationKey := utils.GetUserRelationKey(userId)
 	followerKey := utils.GetUserFollowerKey(toUserId)
 
@@ -33,6 +35,10 @@ func RelationAction(c *gin.Context) {
 		_, err := pipe.Exec(c)
 		if err != nil {
 		}
+		c.JSON(http.StatusOK, model.Response{
+			StatusCode: 0,
+			StatusMsg:  "关注成功",
+		})
 	} else if actionType == "2" {
 		pipe := global.RedisDB.TxPipeline()
 		//关注者的关注列表
@@ -42,6 +48,10 @@ func RelationAction(c *gin.Context) {
 		_, err := pipe.Exec(c)
 		if err != nil {
 		}
+		c.JSON(http.StatusOK, model.Response{
+			StatusCode: 0,
+			StatusMsg:  "取关成功",
+		})
 	} else {
 		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "无该操作类型"})
 	}
@@ -50,13 +60,7 @@ func RelationAction(c *gin.Context) {
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
-	token := c.Query("token")
 	user_id := c.Query("user_id")
-	if _, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 0})
-	} else {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-	}
 	relationKey := utils.GetUserRelationKey(user_id)
 	es, _ := global.RedisDB.SMembers(c, relationKey).Result()
 	len := len(es)
@@ -71,9 +75,10 @@ func FollowList(c *gin.Context) {
 		//id, _ := strconv.ParseInt(es[i], 10, 64)
 
 		global.DB.Where("id = ?", es[i]).Find(&user)
+		fmt.Println(user.Name)
 		user_list[i] = model.UserInfo{
 			User: model.User{
-				//ID:   id,
+				ID:   user.ID,
 				Name: user.Name,
 			},
 			FollowCount:   followCount,
@@ -94,13 +99,8 @@ func FollowList(c *gin.Context) {
 
 // FollowerList all users have same follower list
 func FollowerList(c *gin.Context) {
-	token := c.Query("token")
 	user_id := c.Query("user_id")
-	if _, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 0})
-	} else {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-	}
+
 	followerKey := utils.GetUserFollowerKey(user_id)
 	relationKey := utils.GetUserRelationKey(user_id)
 	es, _ := global.RedisDB.SMembers(c, followerKey).Result()
@@ -117,7 +117,7 @@ func FollowerList(c *gin.Context) {
 		global.DB.Where("id = ?", id).Find(&user)
 		user_list[i] = model.UserInfo{
 			User: model.User{
-				//Id:   id,
+				ID:   user.ID,
 				Name: user.Name,
 			},
 			FollowCount:   followCount,

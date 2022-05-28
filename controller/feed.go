@@ -30,14 +30,15 @@ func Feed(c *gin.Context) {
 		responseVideos[i].Video = videos[i]
 		//responseVideos[i].CreatedAt = VideoList[i].CreatedAt
 		responseVideos[i].Author.Name = "xxx"
-		responseVideos[i].Author.ID = 999
+		responseVideos[i].Author.ID = uint(videos[i].AuthorID)
 		responseVideos[i].Author.FollowCount = 999
 		responseVideos[i].Author.FollowerCount = 999
 		responseVideos[i].FavoriteCount = 1
 		responseVideos[i].CommentCount = 1
 		responseVideos[i].IsFavorite = true
 	}
-	if len(videos)==0{
+	fmt.Println(len(videos))
+	if len(videos) == 0 {
 		responseVideos = DemoVideos
 	}
 	feed := model.FeedResponse{
