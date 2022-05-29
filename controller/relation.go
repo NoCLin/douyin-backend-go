@@ -12,6 +12,19 @@ import (
 	"strconv"
 )
 
+type UserRes struct {
+	ID            uint   `json:"id"`
+	Name          string `json:"name"`
+	FollowCount   uint   `json:"follow_count"`
+	FollowerCount uint   `json:"follower_count"`
+	IsFollow      bool   `json:"is_follow"`
+}
+
+type UserListRes struct {
+	model.Response
+	UserResList []UserRes `json:"user_list"`
+}
+
 // RelationAction no practical effect, just check if token is valid
 func RelationAction(c *gin.Context) {
 	tokenString := c.Query("token")
@@ -60,53 +73,61 @@ func RelationAction(c *gin.Context) {
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
+	tokenString := c.Query("token")
+	claim := &utils.Claims{}
+	token, _ := jwt.ParseWithClaims(tokenString, claim, func(token *jwt.Token) (interface{}, error) {
+		return G.TokenSecret, nil
+	})
+	_ = token
 	user_id := c.Query("user_id")
 	relationKey := utils.GetUserRelationKey(user_id)
 	es, _ := global.RedisDB.SMembers(c, relationKey).Result()
-	len := len(es)
-	var user_list = make([]model.UserInfo, len, len)
-	for i := 0; i < len; i++ {
+	length := len(es)
+	var user_list = make([]UserRes, length, length)
+	for i := 0; i < length; i++ {
 		curRelationkey := utils.GetUserRelationKey(es[i])
 		curFollowerkey := utils.GetUserFollowerKey(es[i])
 		followCount, _ := global.RedisDB.SCard(c, curRelationkey).Result()
 		followerCount, _ := global.RedisDB.SCard(c, curFollowerkey).Result()
 		var user model.User
-
 		//id, _ := strconv.ParseInt(es[i], 10, 64)
-
 		global.DB.Where("id = ?", es[i]).Find(&user)
 		fmt.Println(user.Name)
-		user_list[i] = model.UserInfo{
-			User: model.User{
-				ID:   user.ID,
-				Name: user.Name,
-			},
-			FollowCount:   followCount,
-			FollowerCount: followerCount,
+		user_list[i] = UserRes{
+			ID:            user.ID,
+			Name:          user.Name,
+			FollowCount:   uint(followCount),
+			FollowerCount: uint(followerCount),
 			IsFollow:      true,
 		}
 	}
 
-	c.JSON(http.StatusOK, model.UserListResponse{
+	c.JSON(http.StatusOK, UserListRes{
 		Response: model.Response{
 			StatusCode: 0,
 			StatusMsg:  "获取关注列表成功",
 		},
-		UserList: user_list,
+		UserResList: user_list,
 	})
 	return
 }
 
 // FollowerList all users have same follower list
 func FollowerList(c *gin.Context) {
-	user_id := c.Query("user_id")
+	tokenString := c.Query("token")
+	claim := &utils.Claims{}
+	token, _ := jwt.ParseWithClaims(tokenString, claim, func(token *jwt.Token) (interface{}, error) {
+		return G.TokenSecret, nil
+	})
+	_ = token
 
+	user_id := c.Query("user_id")
 	followerKey := utils.GetUserFollowerKey(user_id)
 	relationKey := utils.GetUserRelationKey(user_id)
 	es, _ := global.RedisDB.SMembers(c, followerKey).Result()
-	len := len(es)
-	var user_list = make([]model.UserInfo, len, len)
-	for i := 0; i < len; i++ {
+	length := len(es)
+	var user_list = make([]UserRes, length, length)
+	for i := 0; i < length; i++ {
 		curRelationkey := utils.GetUserRelationKey(es[i])
 		curFollowerkey := utils.GetUserFollowerKey(es[i])
 		followCount, _ := global.RedisDB.SCard(c, curRelationkey).Result()
@@ -115,22 +136,21 @@ func FollowerList(c *gin.Context) {
 		var user model.User
 		id, _ := strconv.ParseInt(es[i], 10, 64)
 		global.DB.Where("id = ?", id).Find(&user)
-		user_list[i] = model.UserInfo{
-			User: model.User{
-				ID:   user.ID,
-				Name: user.Name,
-			},
-			FollowCount:   followCount,
-			FollowerCount: followerCount,
+		user_list[i] = UserRes{
+			ID:            user.ID,
+			Name:          user.Name,
+			FollowCount:   uint(followCount),
+			FollowerCount: uint(followerCount),
 			IsFollow:      follow,
 		}
 	}
-	c.JSON(http.StatusOK, model.UserListResponse{
+	c.JSON(http.StatusOK, UserListRes{
 		Response: model.Response{
 			StatusCode: 0,
 			StatusMsg:  "获取粉丝列表成功",
 		},
-		UserList: user_list,
-	})
+		UserResList: user_list,
+	},
+	)
 	return
 }
