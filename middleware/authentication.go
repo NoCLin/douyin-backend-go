@@ -5,19 +5,24 @@ import (
 	"github.com/NoCLin/douyin-backend-go/utils"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
+
+var UnCheckList = []string{"/douyin/feed", "/douyin/user/login", "/douyin/user/register"}
 
 func AuthMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
-		// TODO: whitelist array, regex
+		path := c.Request.URL.Path
 
-		if c.Request.URL.Path == "/douyin/feed" ||
-			c.Request.URL.Path == "/douyin/feed/" ||
-			c.Request.URL.Path == "/douyin/user/login" || // for client
-			c.Request.URL.Path == "/douyin/user/login/" ||
-			c.Request.URL.Path == "/douyin/user/register" ||
-			c.Request.URL.Path == "/douyin/user/register/" {
+		flag := 0
+		for _, s := range UnCheckList {
+			if strings.Contains(path, s) {
+				flag = 1
+				break
+			}
+		}
+		if flag == 0 {
 			c.Next()
 			return
 		}
