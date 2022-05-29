@@ -14,35 +14,18 @@ import (
 // CommentAction no practical effect, just check if token is valid
 func CommentAction(c *gin.Context) {
 	//token := c.Query("token")
-	userId := c.Query("user_id")
+	//userId := c.Query("user_id")
 	videoId := c.Query("video_id")
 	actionType := c.Query("action_type")
 	commentTtext := c.Query("comment_text")
 	commentId := c.Query("comment_id")
 
-	v1 := model.Video{
-		AuthorID: 122,
-		PlayUrl:  "Ascas",
-		CoverUrl: "asas",
-	}
-	v2 := model.Video{
-		AuthorID: 12222,
-		PlayUrl:  "Ascasaas",
-		CoverUrl: "asas",
-	}
-	v3 := model.Video{
-		AuthorID: 124,
-		PlayUrl:  "Asa",
-		CoverUrl: "asa",
-	}
-
-	global.DB.Create(&v1)
-	global.DB.Create(&v2)
-	global.DB.Create(&v3)
-
 	//此处先省去token验证阶段
+	userId, _ := c.Get("userID")
+	log.Println("userID: ", userId)
+	uid := userId.(string)
 
-	uId, err := strconv.ParseInt(userId, 10, 64) // 这里转换为 int64 , token验证如若是会用到 userId这一步就会是多余的
+	uId, err := strconv.ParseInt(uid, 10, 64) // 这里转换为 int64 , token验证如若是会用到 userId这一步就会是多余的
 	if err != nil {
 		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "error in userId"})
 		return
@@ -92,7 +75,7 @@ func CommentAction(c *gin.Context) {
 			UserID:     uId,
 			Content:    commentTtext,
 			VideoId:    vdeId,
-			CreateDate: time.Now().Format("2006-01-02 15:04:05"),
+			CreateDate: time.Now(),
 		}
 
 		global.DB.Create(&commit)
