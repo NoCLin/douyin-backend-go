@@ -26,11 +26,11 @@ type Video struct {
 type Comment struct {
 	Model
 
-	VideoId    int64 `json:"video_id,omitempty"`
-	UserID     int64
-	User       User      `json:"user" `
-	Content    string    `json:"content,omitempty" `
-	CreateDate time.Time `json:"create_date,omitempty" `
+	VideoId   int64 `json:"video_id,omitempty"`
+	UserID    int64
+	User      User      `json:"user" `
+	Content   string    `json:"content,omitempty" `
+	CreatedAt time.Time `json:"create_date"`
 }
 
 type User struct {

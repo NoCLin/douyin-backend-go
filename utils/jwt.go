@@ -4,7 +4,6 @@ import (
 	"errors"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/dgrijalva/jwt-go"
-	"log"
 	"time"
 )
 
@@ -29,7 +28,6 @@ func GenerateToken(username string, userid string) (string, error) {
 }
 
 func CheckToken(tokenString string) (*Claims, error) {
-	log.Println("CheckToken is calling")
 	claim := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claim, func(token *jwt.Token) (interface{}, error) {
 		return G.TokenSecret, nil
@@ -46,6 +44,5 @@ func CheckToken(tokenString string) (*Claims, error) {
 		return claim, errors.New("the token has expired,please login again")
 	}
 
-	log.Println("CheckToken successfully")
 	return claim, nil
 }

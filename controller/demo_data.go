@@ -17,16 +17,6 @@ var DemoVideos = []model.VideoResponse{
 	},
 }
 
-var DemoComments = []model.CommentResponse{
-	{
-		Comment: model.Comment{
-			User:       DemoUser.User,
-			Content:    "Test Comment",
-			CreateDate: "05-01",
-		},
-	},
-}
-
 var DemoUser = model.UserInfo{
 	User: model.User{
 		Name: "TestUser",

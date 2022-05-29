@@ -4,20 +4,19 @@ import (
 	"fmt"
 	"github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
+	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 )
 
 // CommentAction no practical effect, just check if token is valid
 func CommentAction(c *gin.Context) {
-	//token := c.Query("token")
-	//userId := c.Query("user_id")
+
 	videoId := c.Query("video_id")
 	actionType := c.Query("action_type")
-	commentTtext := c.Query("comment_text")
+	commentText := c.Query("comment_text")
 	commentId := c.Query("comment_id")
 
 	//此处先省去token验证阶段
@@ -27,19 +26,19 @@ func CommentAction(c *gin.Context) {
 
 	uId, err := strconv.ParseInt(uid, 10, 64) // 这里转换为 int64 , token验证如若是会用到 userId这一步就会是多余的
 	if err != nil {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "error in userId"})
+		json_response.Error(c, 1, "user does not exist")
 		return
 	}
 
 	action, err3 := strconv.Atoi(actionType)
 	if err3 != nil {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "error action"})
+		json_response.Error(c, 1, "video does not exist")
 		return
 	}
 	if action == 2 { //删除评论
 		commId, err4 := strconv.ParseInt(commentId, 10, 64)
 		if err4 != nil {
-			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "delete failed"})
+			json_response.Error(c, 1, "video does not exist")
 			return
 		}
 
@@ -50,14 +49,14 @@ func CommentAction(c *gin.Context) {
 		}
 
 		global.DB.Delete(&delCommit)
-		c.JSON(http.StatusOK, model.Response{StatusCode: 0, StatusMsg: "delete success!"})
+		json_response.OK(c, "ok", nil)
 		return
 	}
 
 	if action == 1 { //发布评论
 		vdeId, err2 := strconv.ParseInt(videoId, 10, 64)
 		if err2 != nil { //验证视频id
-			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "error in videoId"})
+			json_response.Error(c, 1, "video does not exist")
 			return
 		}
 
@@ -67,63 +66,58 @@ func CommentAction(c *gin.Context) {
 		global.DB.First(&video, vdeId)
 		fmt.Printf("%v", video)
 		if video.AuthorID == 0 {
-			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "no  video !"})
+			json_response.Error(c, 1, "video does not exist")
 			return
 		}
 
 		commit := model.Comment{
-			UserID:     uId,
-			Content:    commentTtext,
-			VideoId:    vdeId,
-			CreateDate: time.Now(),
+			UserID:    uId,
+			Content:   commentText,
+			VideoId:   vdeId,
+			CreatedAt: time.Now(),
 		}
 
 		global.DB.Create(&commit)
 
-		c.JSON(http.StatusOK, model.Response{StatusCode: 0, StatusMsg: "commit sucess !"})
+		json_response.OK(c, "ok", nil)
 		return
 
 	}
 	//前面两个操作都不满足
-	c.JSON(http.StatusOK, model.Response{StatusCode: 0, StatusMsg: " illegal operation"})
+	json_response.Error(c, 1, " illegal operation")
+	return
 
 }
 
 // CommentList all videos have same demo comment list
 func CommentList(c *gin.Context) {
-	videoId := c.Query("video_id")
+	videoID := c.Query("video_id")
 
-	vdeId, err2 := strconv.ParseInt(videoId, 10, 64)
+	vdeId, err2 := strconv.ParseInt(videoID, 10, 64)
 	if err2 != nil { //验证视频id
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "error in videoId"})
+		json_response.Error(c, -1, "invalid videoID")
 		return
 	}
-	var video model.Video
-	//global.DB.Debug().First(&video, vdeId)
-	global.DB.First(&video, vdeId)
-	log.Println(vdeId)
-	fmt.Printf("%v", video)
 
-	var commites []model.Comment //查询到评论列表
-	global.DB.Where("video_id = ? ", vdeId).Find(&commites)
+	// TODO: make sure video exists
 
-	DemoComments := make([]model.CommentResponse, len(commites))
+	var comments []model.Comment //查询到评论列表
+	global.DB.Where("video_id = ? ", vdeId).Find(&comments)
+
+	ret := make([]model.CommentResponse, len(comments))
 	index := 0
-	for _, co := range commites {
+	for _, co := range comments {
 		var author model.User //查询到每条commit的author
 		global.DB.Where("id = ?", co.UserID).Find(&author)
 		co.User = author
 
-		commentResponsrItem := model.CommentResponse{
+		//ret = append(ret, commentResponsrItem)
+		ret[index] = model.CommentResponse{
 			co,
 		}
-		//DemoComments = append(DemoComments, commentResponsrItem)
-		DemoComments[index] = commentResponsrItem
 		index++
-		fmt.Printf("%v \n", co)
 	}
-	c.JSON(http.StatusOK, model.CommentListResponse{
-		Response:    model.Response{StatusCode: 0},
-		CommentList: DemoComments,
+	json_response.OK(c, "ok", model.CommentListResponse{
+		CommentList: ret,
 	})
 }

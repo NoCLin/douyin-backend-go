@@ -1,10 +1,5 @@
 package model
 
-type Response struct {
-	StatusCode int32  `json:"status_code"`
-	StatusMsg  string `json:"status_msg,omitempty"`
-}
-
 type CommentResponse struct {
 	Comment
 }
@@ -29,17 +24,14 @@ type UserLoginResponse struct {
 }
 
 type UserResponse struct {
-	Response
 	User UserInfo `json:"user"`
 }
 
 type UserListResponse struct {
-	Response
 	UserList []UserInfo `json:"user_list"`
 }
 
 type VideoListResponse struct {
-	Response
 	VideoList []VideoResponse `json:"video_list"`
 }
 
@@ -49,6 +41,5 @@ type FeedResponse struct {
 }
 
 type CommentListResponse struct {
-	Response
 	CommentList []CommentResponse `json:"comment_list,omitempty"`
 }

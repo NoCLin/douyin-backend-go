@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/NoCLin/douyin-backend-go/utils"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
@@ -15,26 +14,20 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
 
-		flag := 0
 		for _, s := range UnCheckList {
 			if strings.Contains(path, s) {
-				flag = 1
-				break
+				c.Next()
+				return
 			}
-		}
-		if flag == 0 {
-			c.Next()
-			return
 		}
 
 		token := c.Query("token")
-		if token == ""{
+		if token == "" {
 			token = c.PostForm("token")
 		}
 		//fmt.Println("token: ",token)
 		userClaim, err := utils.CheckToken(token)
 		if err != nil {
-			fmt.Println("验证不通过！")
 			json_response.Error(c, -1, "forbidden")
 			// 若验证不通过，不再调用后续的函数处理
 			c.Abort()

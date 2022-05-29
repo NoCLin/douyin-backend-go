@@ -16,31 +16,32 @@ import (
 
 func Feed(c *gin.Context) {
 
-	// TOOD: latest_time
+	// TODO: latest_time
 
 	var videos []model.Video
 
 	// TODO: 过滤已删除
 	// TODO: 关联查询 user
 	// TODO: 填充字段
-	G.DB.Order("created_at desc").Limit(30).Find(&videos)
+	G.DB.Preload("Author").Order("created_at desc").Limit(30).Find(&videos)
 
-	responseVideos := make([]model.VideoResponse, len(videos))
-	for i := 0; i < len(videos); i++ {
-		responseVideos[i].Video = videos[i]
-		//responseVideos[i].CreatedAt = VideoList[i].CreatedAt
-		responseVideos[i].Author.Name = "xxx"
-		responseVideos[i].Author.ID = uint(videos[i].AuthorID)
-		responseVideos[i].Author.FollowCount = 999
-		responseVideos[i].Author.FollowerCount = 999
-		responseVideos[i].FavoriteCount = 1
-		responseVideos[i].CommentCount = 1
-		responseVideos[i].IsFavorite = true
-	}
-	fmt.Println(len(videos))
+	var responseVideos []model.VideoResponse
 	if len(videos) == 0 {
 		responseVideos = DemoVideos
+	} else {
+		responseVideos = make([]model.VideoResponse, len(videos))
+		for i := 0; i < len(videos); i++ {
+			v := videos[i]
+			responseVideos[i].Video = v
+			responseVideos[i].Author = v.Author
+
+			// TODO: real data
+			responseVideos[i].FavoriteCount = 1
+			responseVideos[i].CommentCount = 1
+			responseVideos[i].IsFavorite = false
+		}
 	}
+
 	feed := model.FeedResponse{
 		VideoList: responseVideos,
 		NextTime:  time.Now().Unix(),
