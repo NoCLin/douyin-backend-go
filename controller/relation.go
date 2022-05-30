@@ -29,6 +29,11 @@ func RelationAction(c *gin.Context) {
 	toUserId := c.Query("to_user_id")
 	actionType := c.Query("action_type")
 
+	if userId == toUserId {
+		json_response.Error(c, 1, "invalid")
+		return
+	}
+
 	relationKey := utils.GetUserRelationKey(userId)
 	followerKey := utils.GetUserFollowerKey(toUserId)
 
@@ -41,6 +46,11 @@ func RelationAction(c *gin.Context) {
 		_, err := pipe.Exec(c)
 		if err != nil {
 		}
+		followCount, _ := global.RedisDB.SCard(c, relationKey).Result()
+		followerCount, _ := global.RedisDB.SCard(c, followerKey).Result()
+		var user model.User
+		global.DB.Model(&user).Where("id = ?", userId).Update("follow_count", followCount)
+		global.DB.Model(&user).Where("id = ?", toUserId).Update("follower_count", followerCount)
 		json_response.OK(c, "ok", nil)
 		return
 	} else if actionType == "2" {
@@ -49,9 +59,15 @@ func RelationAction(c *gin.Context) {
 		global.RedisDB.SRem(c, relationKey, toUserId)
 		//被关注者粉丝列表
 		global.RedisDB.SRem(c, followerKey, userId)
+
 		_, err := pipe.Exec(c)
 		if err != nil {
 		}
+		followCount, _ := global.RedisDB.SCard(c, relationKey).Result()
+		followerCount, _ := global.RedisDB.SCard(c, followerKey).Result()
+		var user model.User
+		global.DB.Model(&user).Where("id = ?", userId).Update("follow_count", followCount)
+		global.DB.Model(&user).Where("id = ?", toUserId).Update("follower_count", followerCount)
 		json_response.OK(c, "ok", nil)
 		return
 	} else {

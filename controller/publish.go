@@ -147,12 +147,10 @@ func PublishList(c *gin.Context) {
 
 	for i := 0; i < len(videos); i++ {
 		response[i].Video = videos[i]
-
 		response[i].FavoriteCount = 100
 		response[i].CommentCount = 100
 		response[i].IsFavorite = false
 	}
-
 	json_response.OK(c, "ok", model.VideoListResponse{
 		VideoList: response,
 	})
