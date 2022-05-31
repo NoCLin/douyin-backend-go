@@ -141,3 +141,10 @@ func FollowerList(c *gin.Context) {
 	})
 	return
 }
+
+//返回有isFollow字段的调这个函数，userId为当前用户id，toUserId为要检查是否关注的ID
+func isFollow(c *gin.Context, userId string, toUserid string) bool {
+	relationKey := utils.GetUserRelationKey(userId)
+	follow, _ := global.RedisDB.SIsMember(c, relationKey, toUserid).Result()
+	return follow
+}
