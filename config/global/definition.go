@@ -28,6 +28,7 @@ type MinIO struct {
 	AccessKey       string `yaml:"accessKey"`
 	SecretAccessKey string `yaml:"secretAccessKey"`
 	UseSSL          bool   `yaml:"useSSL"`
+	UserAccessUrl   string `yaml:"userAccessUrl"`
 }
 
 type Database struct {
