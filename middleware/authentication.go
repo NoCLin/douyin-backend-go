@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var UnCheckList = []string{"/douyin/feed", "/douyin/user/login", "/douyin/user/register"}
+var UnCheckList = []string{"/douyin/feed", "/douyin/user/login", "/douyin/user/register", "/douyin/comment/lis"}
 
 func AuthMiddleware() gin.HandlerFunc {
 

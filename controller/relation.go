@@ -64,8 +64,7 @@ func RelationAction(c *gin.Context) {
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
 
-	userId := c.GetString("userID")
-
+	userId := c.Query("user_id") //这里的user_id 指的是被查询主页信息的 用户 既有登录用户，也有视频作者
 	relationKey := utils.GetUserRelationKey(userId)
 	es, _ := global.RedisDB.SMembers(c, relationKey).Result()
 	length := len(es)
@@ -95,8 +94,9 @@ func FollowList(c *gin.Context) {
 
 // FollowerList all users have same follower list
 func FollowerList(c *gin.Context) {
-	userId := c.GetString("userID")
 
+	//userId := c.GetString("userID")
+	userId := c.Query("user_id") //理由同上
 	followerKey := utils.GetUserFollowerKey(userId)
 	relationKey := utils.GetUserRelationKey(userId)
 
