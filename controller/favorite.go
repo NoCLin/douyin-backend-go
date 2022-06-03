@@ -91,5 +91,4 @@ func favouriteCount(c *gin.Context, videoId string) int64 {
 	videoBeFavouriteKey := utils.GetVideoFavoriteNumKey(videoId)
 	favouriteCount, _ := global.RedisDB.SCard(c, videoBeFavouriteKey).Result()
 	return favouriteCount
-
 }
