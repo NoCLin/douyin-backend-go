@@ -11,10 +11,8 @@ import (
 // FavoriteAction no practical effect, just check if token is valid
 func FavoriteAction(c *gin.Context) {
 	userId := c.GetString("userID")
-
 	videoId := c.Query("video_id")
 	actionType := c.Query("action_type")
-
 	//relationKey := utils.GetUserRelationKey(userId)
 	//followerKey := utils.GetUserFollowerKey(toUserId)
 	userFavoriteKey := utils.GetVideoFavoriteKey(userId)
@@ -79,4 +77,18 @@ func FavoriteList(c *gin.Context) {
 	})
 
 	return
+}
+
+//返回有isFavourite字段的调这个函数，userId为当前用户id，videoId为视频Id
+func isFavourite(c *gin.Context, videoId string, userId string) bool {
+	videoBeFavouriteKey := utils.GetVideoFavoriteNumKey(videoId)
+	isFavourite, _ := global.RedisDB.SIsMember(c, videoBeFavouriteKey, userId).Result()
+	return isFavourite
+}
+
+//从redis返回实时更新的点赞数
+func favouriteCount(c *gin.Context, videoId string) int64 {
+	videoBeFavouriteKey := utils.GetVideoFavoriteNumKey(videoId)
+	favouriteCount, _ := global.RedisDB.SCard(c, videoBeFavouriteKey).Result()
+	return favouriteCount
 }
