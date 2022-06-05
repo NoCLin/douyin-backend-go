@@ -97,16 +97,16 @@ func CommentList(c *gin.Context) {
 	// TODO: make sure video exists
 
 	var comments []model.Comment //查询到评论列表
-	global.DB.Where("video_id = ? ", vdeId).Find(&comments)
+	global.DB.Preload("User").Where("video_id = ? ", vdeId).Find(&comments)
 
 	ret := make([]model.CommentResponse, len(comments))
 	index := 0
 	for _, co := range comments {
-		var author model.User //查询到每条commit的author
-		global.DB.Where("id = ?", co.UserID).Find(&author)
-		co.User = author
-
+		//var author model.User //查询到每条commit的author
+		//global.DB.Where("id = ?", co.UserID).Find(&author)
+		//co.User = author
 		//ret = append(ret, commentResponsrItem)
+
 		ret[index] = model.CommentResponse{
 			co,
 		}
