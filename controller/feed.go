@@ -27,6 +27,7 @@ func Feed(c *gin.Context) {
 	G.DB.Preload("Author").Order("created_at desc").Limit(30).Find(&videos)
 
 	userId := c.GetString("userID")
+
 	var responseVideos []model.VideoResponse
 	if len(videos) == 0 {
 		responseVideos = DemoVideos

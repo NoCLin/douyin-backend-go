@@ -88,6 +88,13 @@ func FavoriteList(c *gin.Context) {
 
 //返回有isFavourite字段的调这个函数，userId为当前用户id，videoId为视频Id
 func isFavourite(c *gin.Context, videoId string, userId string) bool {
+	token := c.Query("token")
+	if token == "" {
+		token = c.PostForm("token")
+	}
+	if token ==""{
+		return false
+	}
 	videoBeFavouriteKey := utils.GetVideoFavoriteNumKey(videoId)
 	isFavourite, _ := global.RedisDB.SIsMember(c, videoBeFavouriteKey, userId).Result()
 

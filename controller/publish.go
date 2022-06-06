@@ -135,7 +135,7 @@ func Publish(c *gin.Context) {
 //PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
 	userId := c.GetString("userID")
-	fmt.Printf("userId: ", userId)
+	fmt.Printf("publishList   userId: ", userId)
 	//userId = "1"
 	userIdNum, err := strconv.ParseInt(userId, 10, 64)
 	_ = userIdNum

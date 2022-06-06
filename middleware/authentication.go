@@ -13,7 +13,21 @@ func AuthMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
-
+		if strings.Contains(path, UnCheckList[0]){
+			token := c.Query("token")
+			if token == "" {
+				token = c.PostForm("token")
+			}
+			userClaim, err := utils.CheckToken(token)
+			if err!=nil{
+				c.Next()
+				return
+			}
+			c.Set("userID", userClaim.UserID)
+			c.Set("username", userClaim.Username)
+			c.Next()
+			return
+		}
 		for _, s := range UnCheckList {
 			if strings.Contains(path, s) {
 				c.Next()
