@@ -6,6 +6,7 @@ import (
 	"github.com/NoCLin/douyin-backend-go/utils"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 // FavoriteAction no practical effect, just check if token is valid
@@ -59,6 +60,7 @@ func FavoriteList(c *gin.Context) {
 
 		var video model.Video
 		global.DB.Preload("Author").Where("id = ?", es[i]).Find(&video)
+		video.Author.IsFollow = isFollow(c, userId, strconv.Itoa(int(video.AuthorID)))
 		favoriteList[i] = model.VideoResponse{
 			Video: model.Video{
 				AuthorID: video.AuthorID,

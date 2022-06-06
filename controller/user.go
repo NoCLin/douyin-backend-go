@@ -109,12 +109,14 @@ func Login(c *gin.Context) {
 func UserInfo(c *gin.Context) {
 
 	var user model.User
+	cur_userId := c.GetString("userID")
 
 	err := G.DB.Table("users").Where("id = ?", c.MustGet("userID")).Take(&user).Error
 	if err != nil {
 		json_response.Error(c, -1, "user not exists")
 		return
 	}
+	user.IsFollow = isFollow(c, cur_userId, strconv.Itoa(int(user.ID)))
 	curRelationkey := utils.GetUserRelationKey(strconv.Itoa(int(user.ID)))
 	curFollowerkey := utils.GetUserFollowerKey(strconv.Itoa(int(user.ID)))
 	followCount, _ := G.RedisDB.SCard(c, curRelationkey).Result()
