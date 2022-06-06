@@ -33,7 +33,7 @@ func loadConfig(configKey string) {
 func InitConfig() {
 	env := os.Getenv("DOUYIN_ENV")
 	if env == "" {
-		env = "config"
+		env = "myConfig"
 	}
 
 	loadConfig(env)
@@ -48,6 +48,8 @@ func InitConfig() {
 
 	minioClient := initMinIO()
 	G.MinioClient = minioClient
+
+	G.WordFilter = initSensitiveTree()
 }
 
 func InitTestConfig() {

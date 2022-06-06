@@ -6,7 +6,6 @@ import (
 	"github.com/NoCLin/douyin-backend-go/model"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
-	"log"
 	"strconv"
 	"time"
 )
@@ -19,26 +18,18 @@ func CommentAction(c *gin.Context) {
 	commentText := c.Query("comment_text")
 	commentId := c.Query("comment_id")
 
-	//此处先省去token验证阶段
-	userId, _ := c.Get("userID")
-	log.Println("userID: ", userId)
-	uid := userId.(string)
-
-	uId, err := strconv.ParseInt(uid, 10, 64) // 这里转换为 int64 , token验证如若是会用到 userId这一步就会是多余的
-	if err != nil {
-		json_response.Error(c, 1, "user does not exist")
-		return
-	}
+	//userId已经有中间件验证
+	uId, _ := strconv.ParseInt(c.GetString("userID"), 10, 64)
 
 	action, err3 := strconv.Atoi(actionType)
-	if err3 != nil {
-		json_response.Error(c, 1, "video does not exist")
+	if err3 != nil { //错误操作
+		json_response.Error(c, 1, "faulty operation")
 		return
 	}
 	if action == 2 { //删除评论
 		commId, err4 := strconv.ParseInt(commentId, 10, 64)
 		if err4 != nil {
-			json_response.Error(c, 1, "video does not exist")
+			json_response.Error(c, 1, "comment does not exist")
 			return
 		}
 
@@ -70,6 +61,9 @@ func CommentAction(c *gin.Context) {
 			return
 		}
 
+		//过滤评论
+		commentText = global.WordFilter.Replace(commentText, '*')
+
 		commit := model.Comment{
 			UserID:    uId,
 			Content:   commentText,
@@ -91,6 +85,7 @@ func CommentAction(c *gin.Context) {
 
 // CommentList all videos have same demo comment list
 func CommentList(c *gin.Context) {
+
 	videoID := c.Query("video_id")
 
 	vdeId, err2 := strconv.ParseInt(videoID, 10, 64)
@@ -102,16 +97,16 @@ func CommentList(c *gin.Context) {
 	// TODO: make sure video exists
 
 	var comments []model.Comment //查询到评论列表
-	global.DB.Where("video_id = ? ", vdeId).Find(&comments)
+	global.DB.Preload("User").Where("video_id = ? ", vdeId).Find(&comments)
 
 	ret := make([]model.CommentResponse, len(comments))
 	index := 0
 	for _, co := range comments {
-		var author model.User //查询到每条commit的author
-		global.DB.Where("id = ?", co.UserID).Find(&author)
-		co.User = author
-
+		//var author model.User //查询到每条commit的author
+		//global.DB.Where("id = ?", co.UserID).Find(&author)
+		//co.User = author
 		//ret = append(ret, commentResponsrItem)
+
 		ret[index] = model.CommentResponse{
 			co,
 		}

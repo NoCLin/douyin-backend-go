@@ -37,7 +37,10 @@ func Feed(c *gin.Context) {
 
 			// TODO: real data
 			responseVideos[i].FavoriteCount = 1
-			responseVideos[i].CommentCount = 1
+			var count int64
+			G.DB.Model(&model.Comment{}).Where("video_id = ? ", v.ID).Count(&count)
+			responseVideos[i].CommentCount = count
+
 			responseVideos[i].IsFavorite = false
 		}
 	}
