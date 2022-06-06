@@ -1,7 +1,10 @@
 package model
 
 type CommentResponse struct {
-	Comment
+	Id          uint   `json:"id"`
+	User        User   `json:"user" `
+	Content     string `json:"content,omitempty" `
+	CreatedDate string `json:"create_date"`
 }
 
 type VideoResponse struct {
@@ -42,4 +45,7 @@ type FeedResponse struct {
 
 type CommentListResponse struct {
 	CommentList []CommentResponse `json:"comment_list,omitempty"`
+}
+type CommentActionResponse struct {
+	CommentResponse CommentResponse `json:"comment,omitempty"`
 }

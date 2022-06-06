@@ -7,7 +7,6 @@ import (
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
 	"strconv"
-	"time"
 )
 
 // CommentAction no practical effect, just check if token is valid
@@ -65,15 +64,28 @@ func CommentAction(c *gin.Context) {
 		commentText = global.WordFilter.Replace(commentText, '*')
 
 		commit := model.Comment{
-			UserID:    uId,
-			Content:   commentText,
-			VideoId:   vdeId,
-			CreatedAt: time.Now(),
+			UserID:  uId,
+			Content: commentText,
+			VideoId: vdeId,
 		}
 
 		global.DB.Create(&commit)
+		comm := make([]model.CommentResponse, 1)
+		comm[0] = model.CommentResponse{
+			Id:          commit.ID,
+			User:        commit.User,
+			Content:     commit.Content,
+			CreatedDate: commit.CreatedAt.Format("01-02"),
+		}
+		json_response.OK(c, "ok", model.CommentActionResponse{
+			CommentResponse: model.CommentResponse{
+				Id:          commit.ID,
+				User:        commit.User,
+				Content:     commit.Content,
+				CreatedDate: commit.CreatedAt.Format("01-02"),
+			},
+		})
 
-		json_response.OK(c, "ok", nil)
 		return
 
 	}
@@ -108,7 +120,10 @@ func CommentList(c *gin.Context) {
 		//ret = append(ret, commentResponsrItem)
 
 		ret[index] = model.CommentResponse{
-			co,
+			Id:          co.ID,
+			User:        co.User,
+			Content:     co.Content,
+			CreatedDate: co.CreatedAt.Format("01-02"),
 		}
 		index++
 	}
