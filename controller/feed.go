@@ -34,15 +34,17 @@ func Feed(c *gin.Context) {
 		responseVideos = make([]model.VideoResponse, len(videos))
 		for i := 0; i < len(videos); i++ {
 			v := videos[i]
+
 			responseVideos[i].Video = v
 			//TODO:判断是否登录，未登录isfollow都为false
 			v.Author.IsFollow = isFollow(c, userId, strconv.Itoa(int(v.AuthorID)))
 			responseVideos[i].Author = v.Author
 			// TODO: real data
 			responseVideos[i].FavoriteCount = favouriteCount(c, strconv.Itoa(int(v.ID)))
-			var count int64
+			var count int64 //评论数量
 			G.DB.Model(&model.Comment{}).Where("video_id = ? ", v.ID).Count(&count)
 			responseVideos[i].CommentCount = count
+
 			//TODO:判断是否登录，未登录isFavorite都为false
 			responseVideos[i].IsFavorite = isFavourite(c, strconv.Itoa(int(v.ID)), userId)
 		}

@@ -175,8 +175,11 @@ func PublishList(c *gin.Context) {
 	for i := 0; i < len(videos); i++ {
 		response[i].Video = videos[i]
 		response[i].FavoriteCount = favouriteCount(c, strconv.Itoa(int(videos[i].ID)))
-		//TODO 评论数量改为实际值
-		response[i].CommentCount = 100
+
+		var count int64 //评论数量
+		G.DB.Model(&model.Comment{}).Where("video_id = ? ", videos[i].ID).Count(&count)
+
+		response[i].CommentCount = count
 		response[i].IsFavorite = isFavourite(c, strconv.Itoa(int(videos[i].ID)), userId)
 	}
 	json_response.OK(c, "ok", model.VideoListResponse{

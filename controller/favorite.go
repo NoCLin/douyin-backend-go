@@ -6,6 +6,7 @@ import (
 	"github.com/NoCLin/douyin-backend-go/utils"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
+	"log"
 	"strconv"
 )
 
@@ -61,6 +62,10 @@ func FavoriteList(c *gin.Context) {
 		var video model.Video
 		global.DB.Preload("Author").Where("id = ?", es[i]).Find(&video)
 		video.Author.IsFollow = isFollow(c, userId, strconv.Itoa(int(video.AuthorID)))
+
+		var commentcount int64 //评论数量
+		global.DB.Model(&model.Comment{}).Where("video_id = ? ", video.ID).Count(&commentcount)
+
 		favoriteList[i] = model.VideoResponse{
 			Video: model.Video{
 				AuthorID: video.AuthorID,
@@ -69,7 +74,7 @@ func FavoriteList(c *gin.Context) {
 				CoverUrl: video.CoverUrl,
 			},
 			FavoriteCount: videoFavoriteNum,
-			CommentCount:  0, // TODO
+			CommentCount:  commentcount,
 			IsFavorite:    true,
 		}
 	}
@@ -85,6 +90,8 @@ func FavoriteList(c *gin.Context) {
 func isFavourite(c *gin.Context, videoId string, userId string) bool {
 	videoBeFavouriteKey := utils.GetVideoFavoriteNumKey(videoId)
 	isFavourite, _ := global.RedisDB.SIsMember(c, videoBeFavouriteKey, userId).Result()
+
+	log.Println(isFavourite)
 	return isFavourite
 }
 
@@ -92,5 +99,6 @@ func isFavourite(c *gin.Context, videoId string, userId string) bool {
 func favouriteCount(c *gin.Context, videoId string) int64 {
 	videoBeFavouriteKey := utils.GetVideoFavoriteNumKey(videoId)
 	favouriteCount, _ := global.RedisDB.SCard(c, videoBeFavouriteKey).Result()
+	log.Println(favouriteCount)
 	return favouriteCount
 }
