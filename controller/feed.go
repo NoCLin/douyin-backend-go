@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -25,6 +26,7 @@ func Feed(c *gin.Context) {
 	// TODO: 填充字段
 	G.DB.Preload("Author").Order("created_at desc").Limit(30).Find(&videos)
 
+	userId := c.GetString("userID")
 	var responseVideos []model.VideoResponse
 	if len(videos) == 0 {
 		responseVideos = DemoVideos
@@ -33,26 +35,27 @@ func Feed(c *gin.Context) {
 		for i := 0; i < len(videos); i++ {
 			v := videos[i]
 			responseVideos[i].Video = v
+			//TODO:判断是否登录，未登录isfollow都为false
+			v.Author.IsFollow = isFollow(c, userId, strconv.Itoa(int(v.AuthorID)))
 			responseVideos[i].Author = v.Author
-
 			// TODO: real data
-			responseVideos[i].FavoriteCount = 1
+			responseVideos[i].FavoriteCount = favouriteCount(c, strconv.Itoa(int(v.ID)))
 			var count int64
 			G.DB.Model(&model.Comment{}).Where("video_id = ? ", v.ID).Count(&count)
 			responseVideos[i].CommentCount = count
-
-			responseVideos[i].IsFavorite = false
+			//TODO:判断是否登录，未登录isFavorite都为false
+			responseVideos[i].IsFavorite = isFavourite(c, strconv.Itoa(int(v.ID)), userId)
 		}
 	}
 	var returnTime int64
-	if len(videos)==0{
-		returnTime  = time.Now().Unix()
-	}else{
-		returnTime  = videos[0].CreatedAt.Unix()
+	if len(videos) == 0 {
+		returnTime = time.Now().Unix()
+	} else {
+		returnTime = videos[0].CreatedAt.Unix()
 	}
 	feed := model.FeedResponse{
 		VideoList: responseVideos,
-		NextTime: returnTime,  //本次返回视频的最新时间
+		NextTime:  returnTime, //本次返回视频的最新时间
 	}
 	json_response.OK(c, "ok", feed)
 	return

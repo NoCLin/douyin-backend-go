@@ -61,8 +61,8 @@ func Publish(c *gin.Context) {
 		Author:   user,
 		//PlayUrl: "http://192.168.31.222:9000/bucket" + userIdStr + "/" + uniqueIdStr,
 		//CoverUrl: "http://192.168.31.222:9000/bucket" + userIdStr + "/" + imgStr,
-		PlayUrl: G.Config.MinIO.UserAccessUrl+"/bucket" + userIdStr + "/" + uniqueIdStr,
-		CoverUrl: G.Config.MinIO.UserAccessUrl+"/bucket" + userIdStr + "/" + imgStr,
+		PlayUrl:  G.Config.MinIO.UserAccessUrl + "/bucket" + userIdStr + "/" + uniqueIdStr,
+		CoverUrl: G.Config.MinIO.UserAccessUrl + "/bucket" + userIdStr + "/" + imgStr,
 	}
 	G.DB.Create(video)
 	bucketName := "bucket" + userIdStr //bucket不能短于3个字符
@@ -124,8 +124,8 @@ func Publish(c *gin.Context) {
 		json_response.Error(c, 1, "upload error")
 		return
 	}
-	err=G.RedisDB.Del(context.Background(),"publishlist").Err()
-	if err!=nil{
+	err = G.RedisDB.Del(context.Background(), "publishlist").Err()
+	if err != nil {
 		log.Println("del redis cache failed")
 	}
 
@@ -147,41 +147,40 @@ func PublishList(c *gin.Context) {
 	var videos []model.Video
 	//G.DB.Where("author_id = ?", userIdNum).Find(&videos)
 
-
-	redisCache ,err := G.RedisDB.Get(context.Background(),"publishlist").Result()
-	fmt.Println("redisCache: ",redisCache)
+	redisCache, err := G.RedisDB.Get(context.Background(), "publishlist").Result()
+	fmt.Println("redisCache: ", redisCache)
 	fmt.Println(len(redisCache))
-	if err== redis.Nil ||redisCache =="null" {//去mysql拿
+	if err == redis.Nil || redisCache == "null" { //去mysql拿
 		G.DB.Table("videos").Preload("Author").Select("*").Where("author_id = ?", userId).Scan(&videos)
-		tempStr,err := json.Marshal(videos)
-		if err!=nil{
+		tempStr, err := json.Marshal(videos)
+		if err != nil {
 			log.Println("struct to json failed! ", err)
 		}
-		err=G.RedisDB.Set(context.Background(),"publishlist",tempStr,time.Second*50).Err()
-		if err!=nil{
-			log.Println("set info  to redis failed! ",err)
+		err = G.RedisDB.Set(context.Background(), "publishlist", tempStr, time.Second*50).Err()
+		if err != nil {
+			log.Println("set info  to redis failed! ", err)
 		}
-	}else {
+	} else {
 		fmt.Println("get from redis")
-		json.Unmarshal([]byte(redisCache),&videos)
+		json.Unmarshal([]byte(redisCache), &videos)
 	}
 	fmt.Println("len:  ", len(videos))
 	response := make([]model.VideoResponse, len(videos))
 	//交换封面顺序 让前端正常显示
-	for i,j := 0,len(videos)-1;i<j;i,j=i+1,j-1{
-		temp:= videos[i].CoverUrl
+	for i, j := 0, len(videos)-1; i < j; i, j = i+1, j-1 {
+		temp := videos[i].CoverUrl
 		videos[i].CoverUrl = videos[j].CoverUrl
 		videos[j].CoverUrl = temp
 	}
 	for i := 0; i < len(videos); i++ {
 		response[i].Video = videos[i]
-		response[i].FavoriteCount = 100
+		response[i].FavoriteCount = favouriteCount(c, strconv.Itoa(int(videos[i].ID)))
+		//TODO 评论数量改为实际值
 		response[i].CommentCount = 100
-		response[i].IsFavorite = false
+		response[i].IsFavorite = isFavourite(c, strconv.Itoa(int(videos[i].ID)), userId)
 	}
 	json_response.OK(c, "ok", model.VideoListResponse{
 		VideoList: response,
 	})
 
 }
-
