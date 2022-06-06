@@ -2,12 +2,14 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	G "github.com/NoCLin/douyin-backend-go/config/global"
 	"github.com/NoCLin/douyin-backend-go/model"
 	"github.com/NoCLin/douyin-backend-go/utils"
 	"github.com/NoCLin/douyin-backend-go/utils/json_response"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/minio/minio-go/v7"
 	"log"
 	"math/rand"
@@ -57,12 +59,10 @@ func Publish(c *gin.Context) {
 	video := &model.Video{
 		AuthorID: int64(user.ID),
 		Author:   user,
-		//PlayUrl:  "127.0.0.1:8080/video/" + userId + "/" + uniqueIdStr,
-		//PlayUrl:  "192.168.252.100:9000/bucket" + userId + "/" + uniqueIdStr,
-		PlayUrl: "http://192.168.31.222:9000/bucket" + userIdStr + "/" + uniqueIdStr,
-		//PlayUrl:  "http://192.168.31.222:9000/bucket27/bear.mp4" ,
-		//PlayUrl: "192.168.31.222:8080/video/1/movie1-3.mp4",
-		CoverUrl: "http://192.168.31.222:9000/bucket" + userIdStr + "/" + imgStr,
+		//PlayUrl: "http://192.168.31.222:9000/bucket" + userIdStr + "/" + uniqueIdStr,
+		//CoverUrl: "http://192.168.31.222:9000/bucket" + userIdStr + "/" + imgStr,
+		PlayUrl: G.Config.MinIO.UserAccessUrl+"/bucket" + userIdStr + "/" + uniqueIdStr,
+		CoverUrl: G.Config.MinIO.UserAccessUrl+"/bucket" + userIdStr + "/" + imgStr,
 	}
 	G.DB.Create(video)
 	bucketName := "bucket" + userIdStr //bucket不能短于3个字符
@@ -112,6 +112,11 @@ func Publish(c *gin.Context) {
 	//fmt.Printf("contentType: ",opt.ContentType)
 	//fmt.Printf("objectName: ",objectName)
 	_, err = G.MinioClient.PutObject(context.Background(), bucketName, objectName, src, data.Size, opt)
+	if err != nil {
+		log.Println("oss upload error", err)
+		json_response.Error(c, 1, "upload error")
+		return
+	}
 	opt.ContentType = "image/jpeg"
 	_, err = G.MinioClient.PutObject(context.Background(), bucketName, imgStr, img, imgSize, opt)
 	if err != nil {
@@ -119,15 +124,17 @@ func Publish(c *gin.Context) {
 		json_response.Error(c, 1, "upload error")
 		return
 	}
-	json_response.OK(c, "uploaded successfully", nil)
+	err=G.RedisDB.Del(context.Background(),"publishlist").Err()
+	if err!=nil{
+		log.Println("del redis cache failed")
+	}
 
+	json_response.OK(c, "uploaded successfully", nil)
 }
 
-// PublishList all users have same publish video list
+//PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
-
 	userId := c.GetString("userID")
-
 	fmt.Printf("userId: ", userId)
 	//userId = "1"
 	userIdNum, err := strconv.ParseInt(userId, 10, 64)
@@ -139,12 +146,33 @@ func PublishList(c *gin.Context) {
 	}
 	var videos []model.Video
 	//G.DB.Where("author_id = ?", userIdNum).Find(&videos)
-	G.DB.Table("videos").Preload("Author").Select("*").Where("author_id = ?", userId).Scan(&videos)
+
+
+	redisCache ,err := G.RedisDB.Get(context.Background(),"publishlist").Result()
+	fmt.Println("redisCache: ",redisCache)
+	fmt.Println(len(redisCache))
+	if err== redis.Nil ||redisCache =="null" {//去mysql拿
+		G.DB.Table("videos").Preload("Author").Select("*").Where("author_id = ?", userId).Scan(&videos)
+		tempStr,err := json.Marshal(videos)
+		if err!=nil{
+			log.Println("struct to json failed! ", err)
+		}
+		err=G.RedisDB.Set(context.Background(),"publishlist",tempStr,time.Second*50).Err()
+		if err!=nil{
+			log.Println("set info  to redis failed! ",err)
+		}
+	}else {
+		fmt.Println("get from redis")
+		json.Unmarshal([]byte(redisCache),&videos)
+	}
 	fmt.Println("len:  ", len(videos))
-	//fmt.Printf("%#v",videos[0])
-
 	response := make([]model.VideoResponse, len(videos))
-
+	//交换封面顺序 让前端正常显示
+	for i,j := 0,len(videos)-1;i<j;i,j=i+1,j-1{
+		temp:= videos[i].CoverUrl
+		videos[i].CoverUrl = videos[j].CoverUrl
+		videos[j].CoverUrl = temp
+	}
 	for i := 0; i < len(videos); i++ {
 		response[i].Video = videos[i]
 		response[i].FavoriteCount = 100
@@ -154,6 +182,6 @@ func PublishList(c *gin.Context) {
 	json_response.OK(c, "ok", model.VideoListResponse{
 		VideoList: response,
 	})
-	return
 
 }
+

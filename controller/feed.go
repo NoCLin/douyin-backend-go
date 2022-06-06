@@ -41,10 +41,15 @@ func Feed(c *gin.Context) {
 			responseVideos[i].IsFavorite = false
 		}
 	}
-
+	var returnTime int64
+	if len(videos)==0{
+		returnTime  = time.Now().Unix()
+	}else{
+		returnTime  = videos[0].CreatedAt.Unix()
+	}
 	feed := model.FeedResponse{
 		VideoList: responseVideos,
-		NextTime:  time.Now().Unix(),
+		NextTime: returnTime,  //本次返回视频的最新时间
 	}
 	json_response.OK(c, "ok", feed)
 	return

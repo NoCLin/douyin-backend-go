@@ -34,3 +34,5 @@ minio:
   accessKey: "minio"
   secretAccessKey: "minio123"
   useSSL: false
+  #这里是外部访问oss的地址 
+  userAccessUrl: "http://192.168.31.222:9000" 
